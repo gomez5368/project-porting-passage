@@ -11,7 +11,7 @@ describe("consumption", () => {
   it("counts only between two full-tank fill-ups, summing partials", () => {
     const s = buildConsumptionSegments([f("a", 1000, 40, true), f("b", 1200, 10, false), f("c", 1500, 20, true)]);
     expect(s).toHaveLength(1);
-    expect(s[0].consumption).toBeCloseTo(6);
+    expect(s[0]!.consumption).toBeCloseTo(6);
   });
 });
 
