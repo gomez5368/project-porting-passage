@@ -157,7 +157,7 @@ function findTripleConsistent(values: NumericCell[]): { liters: number; price: n
 function buildRecordFromPosition(cells: string[], line: number): ImportedFillUp | ImportIssue {
   const dateIndex = cells.findIndex((c) => parseDate(c) !== null);
   if (dateIndex === -1) return { line, message: 'Neplatný dátum.' };
-  const date = parseDate(cells[dateIndex]);
+  const date = parseDate(cells[dateIndex] ?? '');
   if (!date) return { line, message: 'Neplatný dátum.' };
 
   let fuelType: FuelType | null = null;
