@@ -22,8 +22,21 @@ export type FillUp = {
   isFullTank: boolean;
 };
 
+export const COST_CATEGORIES = ['Údržba', 'Výmena oleja', 'Pneumatiky', 'Poistka', 'STK', 'Dane a poplatky', 'Diaľnica', 'Parkovanie', 'Ostatné'] as const;
+
+export type Cost = {
+  id: string;
+  vehicleId: string;
+  date: string;
+  amount: number;
+  category: string;
+  note: string;
+  odometer: number | null;
+};
+
 export type AppState = {
   vehicles: Vehicle[];
   fillUps: FillUp[];
+  costs: Cost[];
   selectedVehicleId: string | null;
 };
