@@ -20,8 +20,8 @@ export function ScreenHeader({ title, subtitle }: { title: string; subtitle?: st
 export function FormField({
   label, value, onChange, placeholder, error, hint, suffix, inputMode, type = "text",
 }: {
-  label: string; value: string; onChange: (v: string) => void; placeholder?: string;
-  error?: string | null; hint?: string; suffix?: string;
+  label: string; value: string; onChange: (v: string) => void; placeholder?: string | undefined;
+  error?: string | null | undefined; hint?: string | undefined; suffix?: string | undefined;
   inputMode?: "numeric" | "decimal" | "text"; type?: string;
 }) {
   return (

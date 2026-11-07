@@ -49,7 +49,7 @@ function parseDate(cell: string): string | null {
   const parts = dmy ? [dmy[3], dmy[2], dmy[1]] : iso ? [iso[1], iso[2], iso[3]] : null;
   if (!parts) return null;
 
-  const [year, month, day] = parts.map(Number);
+  const [year = 0, month = 0, day = 0] = parts.map(Number);
   const date = new Date(year, month - 1, day);
   if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day) return null;
   return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
