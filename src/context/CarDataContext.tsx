@@ -49,6 +49,27 @@ export function CarDataProvider({ children }: { children: ReactNode }) {
     setState((prev) => ({ ...prev, fillUps: [...prev.fillUps, ...created] }));
   }, []);
 
+  const importVehicles = useCallback((items: { vehicle: NewVehicle; fillUps: Omit<FillUp, 'id' | 'vehicleId'>[] }[]) => {
+    setState((prev) => {
+      const vehicles = [...prev.vehicles];
+      const fillUps = [...prev.fillUps];
+      for (const item of items) {
+        const existing = vehicles.find(
+          (v) => v.brand === item.vehicle.brand && v.model === item.vehicle.model && v.year === item.vehicle.year,
+        );
+        const target = existing ?? { ...item.vehicle, id: createId() };
+        if (!existing) vehicles.push(target);
+        const keys = new Set(fillUps.filter((f) => f.vehicleId === target.id).map(fillUpKey));
+        for (const f of item.fillUps) {
+          if (keys.has(fillUpKey(f))) continue;
+          keys.add(fillUpKey(f));
+          fillUps.push({ ...f, id: createId(), vehicleId: target.id });
+        }
+      }
+      return { vehicles, fillUps, selectedVehicleId: prev.selectedVehicleId ?? vehicles[0]?.id ?? null };
+    });
+  }, []);
+
   const deleteFillUp = useCallback((fillUpId: string) => {
     setState((prev) => ({ ...prev, fillUps: prev.fillUps.filter((f) => f.id !== fillUpId) }));
   }, []);
