@@ -1,0 +1,7 @@
+[
+ {"capability":"code","source":"Bolt Expo app (4 tabs)","outcome":"rebuilt as web app","status":"verified","next_action":null},
+ {"capability":"records","source":"browser localStorage only","outcome":"kept on-device, same storage key","status":"verified","next_action":null},
+ {"capability":"schema/auth/database","source":"none (supabase-js installed but unused)","outcome":"not needed","status":"verified","next_action":null},
+ {"capability":"spotreba.sk import","source":"lib/importSpotreba.ts","outcome":"ported unchanged","status":"verified","next_action":null},
+ {"capability":"camera/haptics/native","source":"expo deps, unused in screens","outcome":"dropped","status":"accepted","next_action":null}
+]

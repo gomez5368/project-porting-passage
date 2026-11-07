@@ -1,23 +1,50 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { EmptyVehicleState, ScreenHeader, StatCard, TrendChart, VehicleSwitcher } from "@/components/app/ui";
+import { useCarData } from "@/context/CarDataContext";
+import { formatNumber, formatShortDate, sortFillUps, summarizeVehicle } from "@/lib/fuelCalculations";
 
-// The home route ships no og:image, so serve-time hosting can inject the
-// project's social preview (explicit og:image or latest screenshot).
 export const Route = createFileRoute("/")({
-  component: Index,
+  head: () => ({
+    meta: [
+      { title: "Prehľad spotreby – Spotreba auta" },
+      { name: "description", content: "Priemerná spotreba, náklady na palivo a cena za kilometer vášho auta." },
+      { property: "og:title", content: "Prehľad spotreby – Spotreba auta" },
+      { property: "og:description", content: "Priemerná spotreba, náklady na palivo a cena za kilometer vášho auta." },
+    ],
+  }),
+  component: Overview,
 });
 
-// IMPORTANT: Replace this placeholder. See ./README.md for routing conventions.
-function Index() {
+function Overview() {
+  const { vehicles, selectedVehicle, selectedFillUps, selectVehicle } = useCarData();
+  const summary = selectedVehicle ? summarizeVehicle(selectedVehicle, selectedFillUps) : null;
   return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
-    </div>
+    <>
+      <ScreenHeader title="Prehľad" subtitle={selectedVehicle ? `${selectedVehicle.brand} ${selectedVehicle.model}` : "Štatistiky vášho auta"} />
+      {selectedVehicle && summary ? (
+        <>
+          <VehicleSwitcher vehicles={vehicles} selectedId={selectedVehicle.id} onSelect={selectVehicle} />
+          <div className="grid grid-cols-2 gap-3">
+            <StatCard label="Priemerná spotreba" value={summary.averageConsumption !== null ? formatNumber(summary.averageConsumption, 1) : "—"} unit="l/100 km" tone="primary" />
+            <StatCard label="Náklady na palivo" value={formatNumber(summary.totalCost, 2)} unit="€" tone="secondary" />
+            <StatCard label="Cena za 1 km" value={summary.costPerKm !== null ? formatNumber(summary.costPerKm, 3) : "—"} unit="€/km" tone="warning" />
+            <StatCard label="Najazdené km" value={formatNumber(summary.totalKm)} unit="km" tone="success" />
+          </div>
+          {summary.averageConsumption === null ? (
+            <p className="mt-3 text-sm text-muted-foreground">Priemerná spotreba sa zobrazí po dvoch tankovaniach do plnej nádrže.</p>
+          ) : null}
+          <TrendChart title="Vývoj spotreby" tone="primary"
+            points={summary.segments.map((s) => ({ label: formatShortDate(s.date), value: s.consumption }))}
+            formatValue={(v) => `${formatNumber(v, 1)} l/100 km`}
+            emptyText="Graf spotreby sa zobrazí po dvoch tankovaniach do plnej nádrže." />
+          <TrendChart title="Vývoj ceny paliva" tone="secondary"
+            points={sortFillUps(selectedFillUps).map((f) => ({ label: formatShortDate(f.date), value: f.pricePerLiter }))}
+            formatValue={(v) => `${formatNumber(v, 3)} €/l`}
+            emptyText="Zatiaľ žiadne tankovania. Graf ceny sa zobrazí po prvom tankovaní." />
+        </>
+      ) : (
+        <EmptyVehicleState />
+      )}
+    </>
   );
 }

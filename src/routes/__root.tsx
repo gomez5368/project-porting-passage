@@ -12,6 +12,15 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { Car, Fuel, History, LayoutDashboard } from "lucide-react";
+import { CarDataProvider } from "@/context/CarDataContext";
+
+const TABS = [
+  { to: "/", label: "Prehľad", icon: LayoutDashboard },
+  { to: "/tankovanie", label: "Tankovanie", icon: Fuel },
+  { to: "/historia", label: "História", icon: History },
+  { to: "/vozidla", label: "Vozidlá", icon: Car },
+] as const;
 
 function NotFoundComponent() {
   return (
@@ -81,11 +90,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
+      { title: "Spotreba auta" },
+      { name: "description", content: "Sledujte spotrebu paliva, náklady a históriu tankovaní svojho auta." },
       { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { property: "og:title", content: "Spotreba auta" },
+      { property: "og:description", content: "Sledujte spotrebu paliva, náklady a históriu tankovaní svojho auta." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:site", content: "@Lovable" },
@@ -95,6 +104,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         rel: "stylesheet",
         href: appCss,
       },
+      { rel: "preconnect", href: "https://fonts.googleapis.com" },
+      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
+      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Space+Grotesk:wght@600;700&display=swap" },
       { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
     ],
   }),
@@ -106,7 +118,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="sk" className="dark">
       <head>
         <HeadContent />
       </head>
@@ -124,7 +136,25 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-      <Outlet />
+      <CarDataProvider>
+        <main className="mx-auto max-w-2xl px-4 pb-28 pt-8">
+          <Outlet />
+        </main>
+        <nav className="fixed inset-x-0 bottom-0 border-t border-border bg-card/95 backdrop-blur">
+          <ul className="mx-auto grid max-w-2xl grid-cols-4">
+            {TABS.map(({ to, label, icon: Icon }) => (
+              <li key={to}>
+                <Link to={to} activeOptions={{ exact: true }}
+                  className="flex flex-col items-center gap-1 py-3 text-xs font-semibold text-muted-foreground transition-colors hover:text-foreground"
+                  activeProps={{ className: "text-primary hover:text-primary" }}>
+                  <Icon className="size-5" />
+                  {label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      </CarDataProvider>
     </QueryClientProvider>
   );
 }
