@@ -129,7 +129,7 @@ export function TrendChart({ title, points, tone, formatValue, emptyText }: {
         <path d={line} stroke="currentColor" strokeWidth={2.5} fill="none" strokeLinejoin="round" strokeLinecap="round" />
         {points.map((p, i) => <circle key={i} cx={x(i)} cy={y(p.value)} r={4} fill="currentColor" className="stroke-card" strokeWidth={2} />)}
         {idx.map((i) => (
-          <text key={`l${i}`} x={x(i)} y={H - 8} textAnchor={i === 0 ? "start" : i === points.length - 1 ? "end" : "middle"} className="fill-muted-foreground text-[11px]">{points[i].label}</text>
+          <text key={`l${i}`} x={x(i)} y={H - 8} textAnchor={i === 0 ? "start" : i === points.length - 1 ? "end" : "middle"} className="fill-muted-foreground text-[11px]">{points[i]?.label}</text>
         ))}
       </svg>
     );
