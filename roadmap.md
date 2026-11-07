@@ -1,0 +1,2 @@
+- [x] Náklady zo zálohy Spotreba
+- [ ] Preskúmať a importovať pcm.db
