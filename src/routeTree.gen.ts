@@ -10,33 +10,63 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as HistoriaRouteImport } from './routes/historia'
+import { Route as TankovanieRouteImport } from './routes/tankovanie'
+import { Route as VozidlaRouteImport } from './routes/vozidla'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const HistoriaRoute = HistoriaRouteImport.update({
+  id: '/historia',
+  path: '/historia',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TankovanieRoute = TankovanieRouteImport.update({
+  id: '/tankovanie',
+  path: '/tankovanie',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VozidlaRoute = VozidlaRouteImport.update({
+  id: '/vozidla',
+  path: '/vozidla',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/historia': typeof HistoriaRoute
+  '/tankovanie': typeof TankovanieRoute
+  '/vozidla': typeof VozidlaRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/historia': typeof HistoriaRoute
+  '/tankovanie': typeof TankovanieRoute
+  '/vozidla': typeof VozidlaRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/historia': typeof HistoriaRoute
+  '/tankovanie': typeof TankovanieRoute
+  '/vozidla': typeof VozidlaRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/historia' | '/tankovanie' | '/vozidla'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/historia' | '/tankovanie' | '/vozidla'
+  id: '__root__' | '/' | '/historia' | '/tankovanie' | '/vozidla'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  HistoriaRoute: typeof HistoriaRoute
+  TankovanieRoute: typeof TankovanieRoute
+  VozidlaRoute: typeof VozidlaRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +78,35 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/historia': {
+      id: '/historia'
+      path: '/historia'
+      fullPath: '/historia'
+      preLoaderRoute: typeof HistoriaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tankovanie': {
+      id: '/tankovanie'
+      path: '/tankovanie'
+      fullPath: '/tankovanie'
+      preLoaderRoute: typeof TankovanieRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/vozidla': {
+      id: '/vozidla'
+      path: '/vozidla'
+      fullPath: '/vozidla'
+      preLoaderRoute: typeof VozidlaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  HistoriaRoute: HistoriaRoute,
+  TankovanieRoute: TankovanieRoute,
+  VozidlaRoute: VozidlaRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
