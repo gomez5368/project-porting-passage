@@ -1,2 +1,2 @@
 - [x] Náklady zo zálohy Spotreba
-- [ ] Preskúmať a importovať pcm.db
+- [x] pcm.db preskúmané (systémový súbor iPhonu, prázdny, nič na import)
