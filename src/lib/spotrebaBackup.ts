@@ -1,11 +1,12 @@
 // Converts rows from the Spotreba.sk mobile app backup (SQLite .db3) into app records.
 // Only the Cars and Gases tables are read; account/settings tables are never touched.
-import type { FillUp, FuelType, Vehicle } from "@/types/fuel";
+import type { Cost, FillUp, FuelType, Vehicle } from "@/types/fuel";
 
 export type BackupCarRow = { source: number; pk: number; name: string; year: number | null; fuel: string | null; startOdometer: number | null };
 export type BackupGasRow = { carSource: number; carPk: number; odometer: number; price: number; volume: number; timestamp: number; partial: number };
 
-export type BackupVehicle = Omit<Vehicle, "id"> & { fillUps: Omit<FillUp, "id" | "vehicleId">[]; skipped: number };
+export type BackupCostRow = { carSource: number; carPk: number; price: number; timestamp: number; type: string | null; notes: string | null; odometer: number | null };
+export type BackupVehicle = Omit<Vehicle, "id"> & { fillUps: Omit<FillUp, "id" | "vehicleId">[]; costs: Omit<Cost, "id" | "vehicleId">[]; skipped: number };
 export type BackupResult = { vehicles: BackupVehicle[]; orphanFillUps: number };
 
 export function mapFuel(raw: string | null): FuelType {
@@ -28,7 +29,7 @@ function isoDate(unixSeconds: number): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
-export function convertBackup(cars: BackupCarRow[], gases: BackupGasRow[]): BackupResult {
+export function convertBackup(cars: BackupCarRow[], gases: BackupGasRow[], costRows: BackupCostRow[] = []): BackupResult {
   const byKey = new Map<string, BackupVehicle>();
   const result: BackupVehicle[] = [];
   for (const car of cars) {
@@ -37,7 +38,7 @@ export function convertBackup(cars: BackupCarRow[], gases: BackupGasRow[]): Back
       brand, model,
       year: car.year && car.year > 1900 ? car.year : new Date().getFullYear(),
       initialOdometer: Math.max(0, Math.round(car.startOdometer ?? 0)),
-      fillUps: [], skipped: 0,
+      fillUps: [], costs: [], skipped: 0,
     };
     byKey.set(`${car.source}|${car.pk}`, v);
     result.push(v);
@@ -61,6 +62,19 @@ export function convertBackup(cars: BackupCarRow[], gases: BackupGasRow[]): Back
       isFullTank: g.partial === 0,
     });
   }
+  for (const c of costRows) {
+    const v = byKey.get(`${c.carSource}|${c.carPk}`);
+    const amount = Math.round(Math.abs(c.price) * 100) / 100;
+    if (!v || !(amount > 0) || !(c.timestamp > 0)) continue;
+    const type = (c.type ?? "").trim();
+    v.costs.push({
+      date: isoDate(c.timestamp), amount,
+      category: type === "Dialnica" ? "Diaľnica" : type || "Ostatné",
+      note: (c.notes ?? "").trim(),
+      odometer: c.odometer && c.odometer > 0 ? Math.round(c.odometer) : null,
+    });
+  }
+  for (const v of result) v.costs.sort((a, b) => a.date.localeCompare(b.date));
   for (const v of result) v.fillUps.sort((a, b) => a.date.localeCompare(b.date) || a.odometer - b.odometer);
   return { vehicles: result, orphanFillUps };
 }
@@ -87,7 +101,13 @@ export async function readSpotrebaBackup(file: File): Promise<BackupResult> {
       carSource: Number(r[0]), carPk: Number(r[1]), odometer: Number(r[2]), price: Number(r[3]),
       volume: Number(r[4]), timestamp: Number(r[5]), partial: Number(r[6] ?? 0),
     }));
-    return convertBackup(cars, gases);
+    const costs = tables.has("Costs")
+      ? rows("SELECT ZCAR_SOURCE, Z1COSTS, ZPRICE, ZTIMESTAMP, ZTYPE, ZNOTES, zODOMETER FROM Costs").map((r) => ({
+          carSource: Number(r[0]), carPk: Number(r[1]), price: Number(r[2]), timestamp: Number(r[3]),
+          type: r[4] == null ? null : String(r[4]), notes: r[5] == null ? null : String(r[5]), odometer: r[6] == null ? null : Number(r[6]),
+        }))
+      : [];
+    return convertBackup(cars, gases, costs);
   } finally {
     db.close();
   }

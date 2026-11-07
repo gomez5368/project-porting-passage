@@ -1,26 +1,31 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { createId, loadAppState, saveAppState } from '@/lib/storage';
 import { fillUpKey } from '@/lib/importSpotreba';
-import type { AppState, FillUp, Vehicle } from '@/types/fuel';
+import type { AppState, Cost, FillUp, Vehicle } from '@/types/fuel';
 
 type NewVehicle = Omit<Vehicle, 'id'>;
 type NewFillUp = Omit<FillUp, 'id'>;
+type NewCost = Omit<Cost, 'id' | 'vehicleId'>;
+export const costKey = (c: Pick<Cost, 'date' | 'amount' | 'category'>) => `${c.date}|${c.amount.toFixed(2)}|${c.category}`;
 
 type CarDataContextValue = AppState & {
   isReady: boolean;
   selectedVehicle: Vehicle | null;
   selectedFillUps: FillUp[];
+  selectedCosts: Cost[];
+  addCost: (cost: NewCost & { vehicleId: string }) => void;
+  deleteCost: (costId: string) => void;
   addVehicle: (vehicle: NewVehicle) => Vehicle;
   selectVehicle: (vehicleId: string) => void;
   addFillUps: (fillUps: NewFillUp[]) => void;
   deleteFillUp: (fillUpId: string) => void;
-  importVehicles: (items: { vehicle: NewVehicle; fillUps: Omit<FillUp, 'id' | 'vehicleId'>[] }[]) => void;
+  importVehicles: (items: { vehicle: NewVehicle; fillUps: Omit<FillUp, 'id' | 'vehicleId'>[]; costs?: NewCost[] }[]) => void;
 };
 
 const CarDataContext = createContext<CarDataContextValue | null>(null);
 
 export function CarDataProvider({ children }: { children: ReactNode }) {
-  const [state, setState] = useState<AppState>({ vehicles: [], fillUps: [], selectedVehicleId: null });
+  const [state, setState] = useState<AppState>({ vehicles: [], fillUps: [], costs: [], selectedVehicleId: null });
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
@@ -51,10 +56,11 @@ export function CarDataProvider({ children }: { children: ReactNode }) {
     setState((prev) => ({ ...prev, fillUps: [...prev.fillUps, ...created] }));
   }, []);
 
-  const importVehicles = useCallback((items: { vehicle: NewVehicle; fillUps: Omit<FillUp, 'id' | 'vehicleId'>[] }[]) => {
+  const importVehicles = useCallback((items: { vehicle: NewVehicle; fillUps: Omit<FillUp, 'id' | 'vehicleId'>[]; costs?: NewCost[] }[]) => {
     setState((prev) => {
       const vehicles = [...prev.vehicles];
       const fillUps = [...prev.fillUps];
+      const costs = [...prev.costs];
       for (const item of items) {
         const existing = vehicles.find(
           (v) => v.brand === item.vehicle.brand && v.model === item.vehicle.model && v.year === item.vehicle.year,
@@ -67,9 +73,23 @@ export function CarDataProvider({ children }: { children: ReactNode }) {
           keys.add(fillUpKey(f));
           fillUps.push({ ...f, id: createId(), vehicleId: target.id });
         }
+        const cKeys = new Set(costs.filter((c) => c.vehicleId === target.id).map(costKey));
+        for (const c of item.costs ?? []) {
+          if (cKeys.has(costKey(c))) continue;
+          cKeys.add(costKey(c));
+          costs.push({ ...c, id: createId(), vehicleId: target.id });
+        }
       }
-      return { vehicles, fillUps, selectedVehicleId: prev.selectedVehicleId ?? vehicles[0]?.id ?? null };
+      return { vehicles, fillUps, costs, selectedVehicleId: prev.selectedVehicleId ?? vehicles[0]?.id ?? null };
     });
+  }, []);
+
+  const addCost = useCallback((cost: NewCost & { vehicleId: string }) => {
+    setState((prev) => ({ ...prev, costs: [...prev.costs, { ...cost, id: createId() }] }));
+  }, []);
+
+  const deleteCost = useCallback((costId: string) => {
+    setState((prev) => ({ ...prev, costs: prev.costs.filter((c) => c.id !== costId) }));
   }, []);
 
   const deleteFillUp = useCallback((fillUpId: string) => {
@@ -82,10 +102,14 @@ export function CarDataProvider({ children }: { children: ReactNode }) {
     const selectedFillUps = selectedVehicle
       ? state.fillUps.filter((f) => f.vehicleId === selectedVehicle.id)
       : [];
+    const selectedCosts = selectedVehicle ? state.costs.filter((c) => c.vehicleId === selectedVehicle.id) : [];
     return {
       ...state,
       selectedVehicle,
       selectedFillUps,
+      selectedCosts,
+      addCost,
+      deleteCost,
       isReady,
       addVehicle,
       selectVehicle,
@@ -93,7 +117,7 @@ export function CarDataProvider({ children }: { children: ReactNode }) {
       deleteFillUp,
       importVehicles,
     };
-  }, [state, isReady, addVehicle, selectVehicle, addFillUps, deleteFillUp, importVehicles]);
+  }, [state, isReady, addVehicle, selectVehicle, addFillUps, deleteFillUp, importVehicles, addCost, deleteCost]);
 
   return <CarDataContext.Provider value={value}>{children}</CarDataContext.Provider>;
 }

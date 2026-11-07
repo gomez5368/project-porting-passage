@@ -5,6 +5,7 @@ const STORAGE_KEY = 'spotreba-app-state-v1';
 const emptyState: AppState = {
   vehicles: [],
   fillUps: [],
+  costs: [],
   selectedVehicleId: null,
 };
 
@@ -18,6 +19,7 @@ export function loadAppState(): AppState {
     return {
       vehicles: Array.isArray(parsed.vehicles) ? parsed.vehicles : [],
       fillUps: Array.isArray(parsed.fillUps) ? parsed.fillUps : [],
+      costs: Array.isArray(parsed.costs) ? parsed.costs : [],
       selectedVehicleId: typeof parsed.selectedVehicleId === 'string' ? parsed.selectedVehicleId : null,
     };
   } catch {

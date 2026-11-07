@@ -2,13 +2,13 @@ import { useState } from "react";
 import { Database } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { useCarData } from "@/context/CarDataContext";
+import { costKey, useCarData } from "@/context/CarDataContext";
 import { formatCurrency, formatDate, formatNumber } from "@/lib/fuelCalculations";
 import { readSpotrebaBackup, type BackupResult } from "@/lib/spotrebaBackup";
 import { fillUpKey } from "@/lib/importSpotreba";
 
 export function BackupImportCard() {
-  const { vehicles, fillUps, importVehicles } = useCarData();
+  const { vehicles, fillUps, costs, importVehicles } = useCarData();
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -34,17 +34,21 @@ export function BackupImportCard() {
     const existing = vehicles.find((e) => e.brand === v.brand && e.model === v.model && e.year === v.year);
     const keys = new Set(existing ? fillUps.filter((f) => f.vehicleId === existing.id).map(fillUpKey) : []);
     const fresh = v.fillUps.filter((f) => !keys.has(fillUpKey(f)));
-    return { v, existing: !!existing, fresh, dupes: v.fillUps.length - fresh.length };
+    const cKeys = new Set(existing ? costs.filter((c) => c.vehicleId === existing.id).map(costKey) : []);
+    const freshCosts = v.costs.filter((c) => !cKeys.has(costKey(c)));
+    return { v, existing: !!existing, fresh, freshCosts, dupes: v.fillUps.length - fresh.length };
   }) ?? [];
   const totalNew = preview.reduce((s, p) => s + p.fresh.length, 0);
+  const totalCosts = preview.reduce((s, p) => s + p.freshCosts.length, 0);
   const newCars = preview.filter((p) => !p.existing).length;
 
   const save = () => {
     importVehicles(preview.map(({ v }) => ({
       vehicle: { brand: v.brand, model: v.model, year: v.year, initialOdometer: v.initialOdometer },
       fillUps: v.fillUps,
+      costs: v.costs,
     })));
-    setDone(`Importované: ${newCars} vozidiel a ${totalNew} tankovaní.`);
+    setDone(`Importované: ${newCars} vozidiel a ${totalNew} tankovaní a ${totalCosts} nákladov.`);
     close();
   };
 
@@ -74,10 +78,10 @@ export function BackupImportCard() {
           {result ? (
             <div className="space-y-3">
               <div className="rounded-lg bg-accent p-3 text-sm">
-                <p className="font-semibold text-accent-foreground">Nové: {newCars} vozidiel · {totalNew} tankovaní</p>
+                <p className="font-semibold text-accent-foreground">Nové: {newCars} vozidiel · {totalNew} tankovaní · {totalCosts} nákladov</p>
                 {result.orphanFillUps > 0 ? <p>Tankovania bez priradeného auta (preskočíme): {result.orphanFillUps}</p> : null}
               </div>
-              {preview.map(({ v, existing, fresh, dupes }) => (
+              {preview.map(({ v, existing, fresh, freshCosts, dupes }) => (
                 <div key={`${v.brand}-${v.model}-${v.year}`} className="rounded-lg border border-border p-3 text-sm">
                   <div className="flex items-center justify-between gap-2">
                     <p className="font-semibold">{v.brand} {v.model}</p>
@@ -89,6 +93,8 @@ export function BackupImportCard() {
                   <p className="mt-1">Nových tankovaní: <b>{fresh.length}</b>
                     {dupes > 0 ? ` · duplicitných (preskočíme): ${dupes}` : ""}
                     {v.skipped > 0 ? ` · chybných (preskočíme): ${v.skipped}` : ""}</p>
+                  <p>Nových nákladov: <b>{freshCosts.length}</b>
+                    {freshCosts.length > 0 ? ` · spolu ${formatCurrency(freshCosts.reduce((s, c) => s + c.amount, 0))}` : ""}</p>
                   {fresh.length > 0 ? (
                     <ul className="mt-2 divide-y divide-border rounded-md border border-border">
                       {fresh.slice(-5).reverse().map((f, i) => (
@@ -102,8 +108,8 @@ export function BackupImportCard() {
                   {fresh.length > 5 ? <p className="mt-1 text-xs text-muted-foreground">Zobrazených posledných 5 z {fresh.length}.</p> : null}
                 </div>
               ))}
-              <Button className="w-full" size="lg" onClick={save} disabled={totalNew === 0 && newCars === 0}>
-                {totalNew > 0 || newCars > 0 ? `Importovať ${totalNew} tankovaní` : "Všetko je už uložené"}
+              <Button className="w-full" size="lg" onClick={save} disabled={totalNew === 0 && newCars === 0 && totalCosts === 0}>
+                {totalNew > 0 || newCars > 0 || totalCosts > 0 ? `Importovať ${totalNew} tankovaní a ${totalCosts} nákladov` : "Všetko je už uložené"}
               </Button>
             </div>
           ) : null}
