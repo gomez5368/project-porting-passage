@@ -67,11 +67,9 @@ export function convertBackup(cars: BackupCarRow[], gases: BackupGasRow[]): Back
 
 /** Reads a .db3 file in the browser. The file never leaves the device. */
 export async function readSpotrebaBackup(file: File): Promise<BackupResult> {
-  const [{ default: initSqlJs }, { default: wasmUrl }] = await Promise.all([
-    import("sql.js"),
-    import("sql.js/dist/sql-wasm.wasm?url"),
-  ]);
-  const SQL = await initSqlJs({ locateFile: () => wasmUrl });
+  const { default: initSqlJs } = await import("sql.js");
+  // Served from public/wasm so the binary never enters the server bundle.
+  const SQL = await initSqlJs({ locateFile: () => "/wasm/sql-wasm.wasm" });
   const db = new SQL.Database(new Uint8Array(await file.arrayBuffer()));
   try {
     const tables = new Set((db.exec("SELECT name FROM sqlite_master WHERE type='table'")[0]?.values ?? []).map((r) => String(r[0])));
