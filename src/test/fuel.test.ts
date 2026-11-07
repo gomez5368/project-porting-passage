@@ -21,3 +21,20 @@ describe("spotreba.sk import", () => {
     expect(r.records[0]).toMatchObject({ date: "2025-10-01", odometer: 125340, liters: 45.2, totalCost: 72.9 });
   });
 });
+
+import { convertBackup } from "@/lib/spotrebaBackup";
+describe("Spotreba .db3 backup", () => {
+  const cars = [{ source: 2, pk: 1, name: "ŠKODA  Fabia 1.2", year: 2004, fuel: "benzín", startOdometer: 168648 }];
+  it("links fill-ups to the car, maps partial fill-ups and skips broken rows", () => {
+    const r = convertBackup(cars, [
+      { carSource: 2, carPk: 1, odometer: 168688, price: 20, volume: 15.05, timestamp: 1420506000, partial: 1 },
+      { carSource: 2, carPk: 1, odometer: 0, price: 10, volume: 6.9, timestamp: 1521745425, partial: 0 },
+      { carSource: 9, carPk: 9, odometer: 5000, price: 10, volume: 5, timestamp: 1521745425, partial: 0 },
+    ]);
+    const v = r.vehicles[0]!;
+    expect(v).toMatchObject({ brand: "Škoda", model: "Fabia 1.2", initialOdometer: 168648, skipped: 1 });
+    expect(v.fillUps).toHaveLength(1);
+    expect(v.fillUps[0]).toMatchObject({ date: "2015-01-06", liters: 15.05, totalCost: 20, isFullTank: false });
+    expect(r.orphanFillUps).toBe(1);
+  });
+});

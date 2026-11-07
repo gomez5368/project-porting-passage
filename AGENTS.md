@@ -29,3 +29,4 @@ use the editor.
 - **Secrets.** Lovable manages them. Do not put secret values in the repo.
 <!-- LOVABLE:END -->
 - App data (vehicles, fill-ups) lives in browser localStorage via src/context/CarDataContext.tsx under key spotreba-app-state-v1 — kept from the original Bolt app so no backend is needed.
+- Browser-only WASM (sql.js for .db3 backup import) is served from public/wasm and loaded by URL — importing .wasm from src breaks the server bundle.
