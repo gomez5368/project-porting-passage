@@ -4,6 +4,7 @@ import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { FormField, ScreenHeader } from "@/components/app/ui";
+import { BackupImportCard } from "@/components/app/BackupImportCard";
 import { useCarData } from "@/context/CarDataContext";
 import { formatNumber } from "@/lib/fuelCalculations";
 import { parseDecimal } from "@/lib/parseDecimal";
@@ -53,6 +54,7 @@ function Vehicles() {
     <>
       <ScreenHeader title="Vozidlá" subtitle="Spravujte autá, ktorých spotrebu chcete sledovať." />
       <Button size="lg" className="mb-5 w-full" onClick={() => setOpen(true)}><Plus /> Pridať vozidlo</Button>
+      <BackupImportCard />
       {vehicles.length === 0 ? (
         <div className="panel text-muted-foreground">Zatiaľ žiadne vozidlo. Pridajte prvé tlačidlom vyššie.</div>
       ) : (
