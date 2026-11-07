@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { createId, loadAppState, saveAppState } from '@/lib/storage';
+import { fillUpKey } from '@/lib/importSpotreba';
 import type { AppState, FillUp, Vehicle } from '@/types/fuel';
 
 type NewVehicle = Omit<Vehicle, 'id'>;
@@ -13,6 +14,7 @@ type CarDataContextValue = AppState & {
   selectVehicle: (vehicleId: string) => void;
   addFillUps: (fillUps: NewFillUp[]) => void;
   deleteFillUp: (fillUpId: string) => void;
+  importVehicles: (items: { vehicle: NewVehicle; fillUps: Omit<FillUp, 'id' | 'vehicleId'>[] }[]) => void;
 };
 
 const CarDataContext = createContext<CarDataContextValue | null>(null);
@@ -89,8 +91,9 @@ export function CarDataProvider({ children }: { children: ReactNode }) {
       selectVehicle,
       addFillUps,
       deleteFillUp,
+      importVehicles,
     };
-  }, [state, isReady, addVehicle, selectVehicle, addFillUps, deleteFillUp]);
+  }, [state, isReady, addVehicle, selectVehicle, addFillUps, deleteFillUp, importVehicles]);
 
   return <CarDataContext.Provider value={value}>{children}</CarDataContext.Provider>;
 }
