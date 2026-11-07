@@ -12,13 +12,14 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
-import { Car, Fuel, History, LayoutDashboard } from "lucide-react";
+import { Car, Fuel, History, LayoutDashboard, Wallet } from "lucide-react";
 import { CarDataProvider } from "@/context/CarDataContext";
 
 const TABS = [
   { to: "/", label: "Prehľad", icon: LayoutDashboard },
   { to: "/tankovanie", label: "Tankovanie", icon: Fuel },
   { to: "/historia", label: "História", icon: History },
+  { to: "/naklady", label: "Náklady", icon: Wallet },
   { to: "/vozidla", label: "Vozidlá", icon: Car },
 ] as const;
 
@@ -141,7 +142,7 @@ function RootComponent() {
           <Outlet />
         </main>
         <nav className="fixed inset-x-0 bottom-0 border-t border-border bg-card/95 backdrop-blur">
-          <ul className="mx-auto grid max-w-2xl grid-cols-4">
+          <ul className="mx-auto grid max-w-2xl grid-cols-5">
             {TABS.map(({ to, label, icon: Icon }) => (
               <li key={to}>
                 <Link to={to} activeOptions={{ exact: true }}

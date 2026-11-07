@@ -16,7 +16,8 @@ export const Route = createFileRoute("/")({
 });
 
 function Overview() {
-  const { vehicles, selectedVehicle, selectedFillUps, selectVehicle } = useCarData();
+  const { vehicles, selectedVehicle, selectedFillUps, selectedCosts, selectVehicle } = useCarData();
+  const otherCosts = selectedCosts.reduce((s, c) => s + c.amount, 0);
   const summary = selectedVehicle ? summarizeVehicle(selectedVehicle, selectedFillUps) : null;
   return (
     <>
@@ -29,6 +30,8 @@ function Overview() {
             <StatCard label="Náklady na palivo" value={formatNumber(summary.totalCost, 2)} unit="€" tone="secondary" />
             <StatCard label="Cena za 1 km" value={summary.costPerKm !== null ? formatNumber(summary.costPerKm, 3) : "—"} unit="€/km" tone="warning" />
             <StatCard label="Najazdené km" value={formatNumber(summary.totalKm)} unit="km" tone="success" />
+            <StatCard label="Ostatné náklady" value={formatNumber(otherCosts, 2)} unit="€" tone="warning" />
+            <StatCard label="Celkom za auto" value={formatNumber(summary.totalCost + otherCosts, 2)} unit="€" tone="primary" />
           </div>
           {summary.averageConsumption === null ? (
             <p className="mt-3 text-sm text-muted-foreground">Priemerná spotreba sa zobrazí po dvoch tankovaniach do plnej nádrže.</p>

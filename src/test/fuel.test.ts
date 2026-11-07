@@ -38,3 +38,14 @@ describe("Spotreba .db3 backup", () => {
     expect(r.orphanFillUps).toBe(1);
   });
 });
+
+describe("Spotreba .db3 costs", () => {
+  it("imports costs as positive amounts linked to the car", () => {
+    const r = convertBackup(
+      [{ source: 2, pk: 1, name: "ŠKODA Fabia", year: 2004, fuel: "benzín", startOdometer: 1000 }], [],
+      [{ carSource: 2, carPk: 1, price: -20, timestamp: 1420120941, type: "Parkovanie", notes: "Parkovné Senica", odometer: 168648 },
+       { carSource: 2, carPk: 1, price: -14, timestamp: 1420120941, type: "Dialnica", notes: null, odometer: 0 }]);
+    expect(r.vehicles[0]!.costs[0]).toMatchObject({ amount: 20, category: "Parkovanie", note: "Parkovné Senica", odometer: 168648 });
+    expect(r.vehicles[0]!.costs[1]).toMatchObject({ amount: 14, category: "Diaľnica", odometer: null });
+  });
+});
