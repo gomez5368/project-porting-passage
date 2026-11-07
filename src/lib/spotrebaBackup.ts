@@ -69,7 +69,8 @@ export function convertBackup(cars: BackupCarRow[], gases: BackupGasRow[]): Back
 export async function readSpotrebaBackup(file: File): Promise<BackupResult> {
   const { default: initSqlJs } = await import("sql.js");
   // Served from public/wasm so the binary never enters the server bundle.
-  const SQL = await initSqlJs({ locateFile: () => "/wasm/sql-wasm.wasm" });
+  const wasmUrl = ["/wasm/sql-wasm", "wasm"].join("."); // public/wasm URL, fetched at runtime only
+  const SQL = await initSqlJs({ locateFile: () => wasmUrl });
   const db = new SQL.Database(new Uint8Array(await file.arrayBuffer()));
   try {
     const tables = new Set((db.exec("SELECT name FROM sqlite_master WHERE type='table'")[0]?.values ?? []).map((r) => String(r[0])));
