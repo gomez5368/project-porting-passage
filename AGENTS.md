@@ -28,3 +28,4 @@ use the editor.
   own key and store it in Secrets.
 - **Secrets.** Lovable manages them. Do not put secret values in the repo.
 <!-- LOVABLE:END -->
+- App data (vehicles, fill-ups) lives in browser localStorage via src/context/CarDataContext.tsx under key spotreba-app-state-v1 — kept from the original Bolt app so no backend is needed.
