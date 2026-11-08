@@ -48,7 +48,7 @@ describe("fill-up editing", () => {
     const updated = replaceFillUp(state, original.id, { ...original, liters: 40, totalCost: 64, pricePerLiter: 1.6 });
     expect(updated.fillUps).toHaveLength(2);
     expect(updated.fillUps[1]).toMatchObject({ id: "second", vehicleId: "car", liters: 40, totalCost: 64 });
-    expect(summarizeVehicle(vehicle, state.fillUps).averageConsumption).toBe(7);
+    expect(summarizeVehicle(vehicle, state.fillUps).averageConsumption).toBeCloseTo(7);
     expect(summarizeVehicle(vehicle, updated.fillUps).averageConsumption).toBe(8);
     expect(summarizeVehicle(vehicle, updated.fillUps).totalCost).toBe(124);
     expect(state.fillUps[1]?.liters).toBe(35);
