@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
-import { Download, Upload } from "lucide-react";
+import { DatabaseBackup, Download, Upload } from "lucide-react";
+import { BackupSummaryCard } from "@/components/app/BackupSummaryCard";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useCarData } from "@/context/CarDataContext";
@@ -11,12 +12,13 @@ export function JsonBackupSection() {
   const { vehicles, fillUps, costs, selectedVehicleId, isReady, restoreData } = useCarData();
   const input = useRef<HTMLInputElement>(null);
   const [pending, setPending] = useState<AppState | null>(null);
+  const [lastImported, setLastImported] = useState<AppState | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
 
   const exportData = () => {
-    setError(null); setMessage(null);
+    setError(null); setMessage(null); setLastImported(null);
     try {
       const json = serializeJsonBackup({ vehicles, fillUps, costs, selectedVehicleId });
       downloadFile(new Blob([json], { type: "application/json;charset=utf-8" }), "spotreba_zaloha.json");
@@ -26,9 +28,11 @@ export function JsonBackupSection() {
   };
   const readFile = async (file: File | undefined) => {
     if (!file) return;
-    setBusy(true); setError(null); setMessage(null); setPending(null);
+    setBusy(true); setError(null); setMessage(null); setPending(null); setLastImported(null);
     try {
-      setPending(parseJsonBackup(await file.text()));
+      const parsed = parseJsonBackup(await file.text());
+      setPending(parsed);
+      setLastImported(parsed);
     } catch {
       setError("Súbor nie je platná JSON záloha aplikácie Spotreba. Údaje zostali nezmenené.");
     } finally {
@@ -49,13 +53,20 @@ export function JsonBackupSection() {
   };
 
   return (
-    <section className="mb-6 border-y border-border py-5">
-      <h2 className="mb-3 font-semibold">Záloha a obnova dát</h2>
+    <section aria-labelledby="backup-heading" className="mb-6 rounded-2xl border border-border/60 bg-card p-5 text-card-foreground shadow-lg shadow-black/20">
+      <div className="mb-4 flex items-start gap-3">
+        <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/15 text-primary"><DatabaseBackup className="size-5" aria-hidden="true" /></span>
+        <div>
+          <h2 id="backup-heading" className="font-semibold">Záloha a obnova dát</h2>
+          <p className="text-sm text-muted-foreground">Čitateľný JSON súbor, ktorý otvoríte aj v Poznámkovom bloku.</p>
+        </div>
+      </div>
       <div className="flex flex-col gap-2 sm:flex-row">
         <Button variant="outline" className="min-w-0 sm:flex-1" onClick={exportData} disabled={!isReady || busy}><Download /> Exportovať dáta (JSON)</Button>
         <Button variant="outline" className="min-w-0 sm:flex-1" onClick={() => input.current?.click()} disabled={!isReady || busy}><Upload /> {busy ? "Čítam zálohu…" : "Importovať dáta (JSON)"}</Button>
       </div>
       <input ref={input} type="file" accept=".json,application/json" className="sr-only" aria-label="JSON záloha" onChange={(e) => void readFile(e.target.files?.[0])} />
+      {isReady ? <BackupSummaryCard data={lastImported ?? { vehicles, fillUps, costs }} source={lastImported ? "imported" : "current"} /> : null}
       {error ? <p role="alert" className="mt-3 text-sm text-destructive">{error}</p> : null}
       {message ? <p role="status" className="mt-3 text-sm font-semibold text-success">{message}</p> : null}
       <Dialog open={pending !== null} onOpenChange={(open) => { if (!open) setPending(null); }}>
