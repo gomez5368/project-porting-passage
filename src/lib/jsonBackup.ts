@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { FUEL_TYPES, type AppState, type FillUp } from "@/types/fuel";
+import { FUEL_TYPES, type AppState, type FillUp, type Cost } from "@/types/fuel";
 
 const id = z.string().min(1);
 const nonNegative = z.number().finite().nonnegative();
@@ -46,4 +46,7 @@ export function serializeJsonBackup(state: AppState): string {
 
 export function replaceFillUp(state: AppState, fillUpId: string, changes: Omit<FillUp, "id" | "vehicleId">): AppState {
   return { ...state, fillUps: state.fillUps.map((f) => f.id === fillUpId ? { ...changes, id: f.id, vehicleId: f.vehicleId } : f) };
+}
+export function replaceCost(state: AppState, costId: string, changes: Pick<Cost, "date" | "amount" | "category" | "note">): AppState {
+  return { ...state, costs: state.costs.map((c) => c.id === costId ? { ...c, ...changes, id: c.id, vehicleId: c.vehicleId } : c) };
 }
