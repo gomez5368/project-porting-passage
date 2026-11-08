@@ -20,14 +20,14 @@ function isValidIsoDate(v: string) {
   return dt.getFullYear() === y && dt.getMonth() === m - 1 && dt.getDate() === d;
 }
 
-export function FillUpForm({ latestOdometer, onSubmit }: { latestOdometer: number; onSubmit: (i: Omit<FillUp, "id" | "vehicleId">) => void }) {
-  const [date, setDate] = useState(todayIso);
-  const [odometer, setOdometer] = useState("");
-  const [liters, setLiters] = useState("");
+export function FillUpForm({ latestOdometer, initialFillUp, onSubmit }: { latestOdometer: number; initialFillUp?: FillUp; onSubmit: (i: Omit<FillUp, "id" | "vehicleId">) => void }) {
+  const [date, setDate] = useState(() => initialFillUp?.date ?? todayIso());
+  const [odometer, setOdometer] = useState(() => initialFillUp ? String(initialFillUp.odometer) : "");
+  const [liters, setLiters] = useState(() => initialFillUp ? String(initialFillUp.liters) : "");
   const [priceMode, setPriceMode] = useState<PriceMode>("total");
-  const [priceValue, setPriceValue] = useState("");
-  const [fuelType, setFuelType] = useState<FuelType>("Benzín");
-  const [full, setFull] = useState<FullTank>("yes");
+  const [priceValue, setPriceValue] = useState(() => initialFillUp ? String(initialFillUp.totalCost) : "");
+  const [fuelType, setFuelType] = useState<FuelType>(initialFillUp?.fuelType ?? "Benzín");
+  const [full, setFull] = useState<FullTank>(initialFillUp?.isFullTank === false ? "no" : "yes");
   const [errors, setErrors] = useState<Errors>({});
   const [saved, setSaved] = useState<string | null>(null);
 
@@ -44,7 +44,7 @@ export function FillUpForm({ latestOdometer, onSubmit }: { latestOdometer: numbe
     const next: Errors = {};
     if (!isValidIsoDate(date)) next.date = "Zadajte dátum vo formáte RRRR-MM-DD.";
     if (!Number.isInteger(o) || o < 0) next.odometer = "Zadajte celé číslo v km.";
-    else if (o < latestOdometer) next.odometer = `Stav tachometra nesmie byť nižší ako ${formatNumber(latestOdometer)} km.`;
+    else if (!initialFillUp && o < latestOdometer) next.odometer = `Stav tachometra nesmie byť nižší ako ${formatNumber(latestOdometer)} km.`;
     if (!okL) next.liters = "Zadajte množstvo litrov väčšie ako 0.";
     if (!okP) next.price = priceMode === "total" ? "Zadajte celkovú cenu väčšiu ako 0." : "Zadajte cenu za liter väčšiu ako 0.";
     setErrors(next);
@@ -56,16 +56,17 @@ export function FillUpForm({ latestOdometer, onSubmit }: { latestOdometer: numbe
       pricePerLiter: Math.round(perL * 1000) / 1000,
       fuelType, isFullTank: full === "yes",
     });
+    if (initialFillUp) return;
     setOdometer(""); setLiters(""); setPriceValue("");
     setSaved("Tankovanie bolo uložené.");
   };
 
   return (
-    <form onSubmit={submit} className="panel space-y-5">
+    <form onSubmit={submit} className={initialFillUp ? "space-y-5" : "panel space-y-5"}>
       <FormField label="Dátum tankovania" type="date" value={date} onChange={setDate} placeholder="RRRR-MM-DD" error={errors.date} />
       <FormField label="Aktuálny stav tachometra" value={odometer} onChange={setOdometer} inputMode="numeric"
         placeholder={`napr. ${formatNumber(latestOdometer + 1)}`} suffix="km" error={errors.odometer}
-        hint={`Posledný zapísaný stav: ${formatNumber(latestOdometer)} km`} />
+        hint={initialFillUp ? undefined : `Posledný zapísaný stav: ${formatNumber(latestOdometer)} km`} />
       <FormField label="Natankované litre" value={liters} onChange={setLiters} inputMode="decimal" placeholder="napr. 45,5" suffix="l" error={errors.liters} />
       <div className="space-y-2">
         <p className="text-sm font-semibold text-muted-foreground">Zadajte</p>
@@ -84,7 +85,7 @@ export function FillUpForm({ latestOdometer, onSubmit }: { latestOdometer: numbe
         <p className="text-sm text-muted-foreground">Spotreba sa počíta len medzi dvoma tankovaniami do plnej nádrže.</p>
       </div>
       {saved ? <p className="font-semibold text-success">{saved}</p> : null}
-      <Button type="submit" size="lg" className="w-full">Uložiť tankovanie</Button>
+      <Button type="submit" size="lg" className="w-full">{initialFillUp ? "Uložiť zmeny" : "Uložiť tankovanie"}</Button>
     </form>
   );
 }
