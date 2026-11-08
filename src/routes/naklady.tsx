@@ -1,13 +1,14 @@
 import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { Trash2 } from "lucide-react";
+import { Pencil, Trash2 } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { EmptyVehicleState, FormField, ScreenHeader, VehicleSwitcher } from "@/components/app/ui";
 import { useCarData } from "@/context/CarDataContext";
 import { formatCurrency, formatDate, formatNumber } from "@/lib/fuelCalculations";
 import { parseDecimal } from "@/lib/parseDecimal";
 import { cn } from "@/lib/utils";
-import { COST_CATEGORIES } from "@/types/fuel";
+import { COST_CATEGORIES, type Cost } from "@/types/fuel";
 
 export const Route = createFileRoute("/naklady")({
   head: () => ({
@@ -29,12 +30,8 @@ function todayIso() {
 }
 
 function Costs() {
-  const { vehicles, selectedVehicle, selectedCosts, selectedFillUps, selectVehicle, addCost, deleteCost } = useCarData();
-  const [date, setDate] = useState(todayIso);
-  const [amount, setAmount] = useState("");
-  const [category, setCategory] = useState<string>("Údržba");
-  const [note, setNote] = useState("");
-  const [error, setError] = useState<string | null>(null);
+  const { vehicles, selectedVehicle, selectedCosts, selectedFillUps, selectVehicle, addCost, deleteCost, updateCost } = useCarData();
+  const [editing, setEditing] = useState<Cost | null>(null);
   const [filter, setFilter] = useState<string | null>(null);
   const [confirmId, setConfirmId] = useState<string | null>(null);
 
@@ -45,16 +42,6 @@ function Costs() {
   const byCategory = [...selectedCosts.reduce((m, c) => m.set(c.category, (m.get(c.category) ?? 0) + c.amount), new Map<string, number>())]
     .sort((a, b) => b[1] - a[1]);
   const list = [...selectedCosts].filter((c) => !filter || c.category === filter).sort((a, b) => b.date.localeCompare(a.date));
-
-  const submit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const a = parseDecimal(amount);
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return setError("Zadajte platný dátum.");
-    if (!Number.isFinite(a) || a <= 0) return setError("Zadajte sumu väčšiu ako 0.");
-    setError(null);
-    addCost({ vehicleId: selectedVehicle.id, date, amount: Math.round(a * 100) / 100, category, note: note.trim(), odometer: null });
-    setAmount(""); setNote("");
-  };
 
   return (
     <>
@@ -91,23 +78,10 @@ function Costs() {
         </section>
       ) : null}
 
-      <form onSubmit={submit} className="panel mt-4 space-y-4">
-        <h2 className="font-semibold">Pridať náklad</h2>
-        <div className="grid grid-cols-2 gap-3">
-          <FormField label="Dátum" type="date" value={date} onChange={setDate} />
-          <FormField label="Suma" value={amount} onChange={setAmount} inputMode="decimal" placeholder="napr. 120,50" suffix="€" />
-        </div>
-        <label className="block">
-          <span className="mb-1.5 block text-sm font-semibold text-muted-foreground">Kategória</span>
-          <select value={category} onChange={(e) => setCategory(e.target.value)}
-            className="h-11 w-full rounded-lg border border-border bg-muted px-3 outline-none focus:ring-2 focus:ring-ring">
-            {COST_CATEGORIES.map((c) => <option key={c}>{c}</option>)}
-          </select>
-        </label>
-        <FormField label="Poznámka" value={note} onChange={setNote} placeholder="napr. výmena brzdových platničiek" />
-        {error ? <p className="text-sm text-destructive">{error}</p> : null}
-        <Button type="submit" className="w-full" size="lg">Uložiť náklad</Button>
-      </form>
+      <section className="panel mt-4">
+        <h2 className="mb-4 font-semibold">Pridať náklad</h2>
+        <CostForm onSubmit={(v) => addCost({ ...v, vehicleId: selectedVehicle.id, odometer: null })} />
+      </section>
 
       <h2 className="mb-3 mt-6 font-semibold">{filter ? `${filter} (${list.length})` : `Všetky náklady (${list.length})`}</h2>
       {list.length === 0 ? <div className="panel text-muted-foreground">Zatiaľ žiadne náklady.</div> : list.map((c) => (
@@ -125,11 +99,61 @@ function Costs() {
                 <Button size="sm" variant="destructive" onClick={() => deleteCost(c.id)}>Vymazať</Button>
               </div>
             ) : (
-              <button type="button" aria-label="Vymazať náklad" onClick={() => setConfirmId(c.id)} className="mt-1 text-destructive"><Trash2 className="size-4" /></button>
+              <div className="mt-1 flex justify-end gap-3">
+              <button type="button" aria-label="Upraviť náklad" onClick={() => setEditing(c)} className="text-muted-foreground hover:text-foreground"><Pencil className="size-4" /></button>
+              <button type="button" aria-label="Vymazať náklad" onClick={() => setConfirmId(c.id)} className="text-destructive"><Trash2 className="size-4" /></button>
+              </div>
             )}
           </div>
         </article>
       ))}
+      <Dialog open={editing !== null} onOpenChange={(o) => { if (!o) setEditing(null); }}>
+        <DialogContent className="max-h-[90vh] overflow-y-auto">
+          <DialogHeader><DialogTitle>Upraviť náklad</DialogTitle></DialogHeader>
+          {editing ? <CostForm key={editing.id} initial={editing} onSubmit={(v) => { updateCost(editing.id, v); setEditing(null); }} /> : null}
+        </DialogContent>
+      </Dialog>
     </>
+  );
+}
+
+type CostValues = Pick<Cost, "date" | "amount" | "category" | "note">;
+
+function CostForm({ initial, onSubmit }: { initial?: Cost; onSubmit: (v: CostValues) => void }) {
+  const [date, setDate] = useState(() => initial?.date ?? todayIso());
+  const [amount, setAmount] = useState(() => initial ? String(initial.amount).replace(".", ",") : "");
+  const [category, setCategory] = useState<string>(initial?.category ?? "Údržba");
+  const [note, setNote] = useState(initial?.note ?? "");
+  const [error, setError] = useState<string | null>(null);
+  const categories: string[] = [...COST_CATEGORIES];
+  if (!categories.includes(category)) categories.push(category);
+
+  const submit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const a = parseDecimal(amount);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return setError("Zadajte platný dátum.");
+    if (!Number.isFinite(a) || a <= 0) return setError("Zadajte sumu väčšiu ako 0.");
+    setError(null);
+    onSubmit({ date, amount: Math.round(a * 100) / 100, category, note: note.trim() });
+    if (!initial) { setAmount(""); setNote(""); }
+  };
+
+  return (
+    <form onSubmit={submit} className="space-y-4">
+      <div className="grid grid-cols-2 gap-3">
+        <FormField label="Dátum" type="date" value={date} onChange={setDate} />
+        <FormField label="Suma" value={amount} onChange={setAmount} inputMode="decimal" placeholder="napr. 120,50" suffix="€" />
+      </div>
+      <label className="block">
+        <span className="mb-1.5 block text-sm font-semibold text-muted-foreground">Kategória</span>
+        <select value={category} onChange={(e) => setCategory(e.target.value)}
+          className="h-11 w-full rounded-lg border border-border bg-muted px-3 outline-none focus:ring-2 focus:ring-ring">
+          {categories.map((c) => <option key={c}>{c}</option>)}
+        </select>
+      </label>
+      <FormField label="Poznámka" value={note} onChange={setNote} placeholder="napr. výmena brzdových platničiek" />
+      {error ? <p className="text-sm text-destructive">{error}</p> : null}
+      <Button type="submit" className="w-full" size="lg">{initial ? "Uložiť zmeny" : "Uložiť náklad"}</Button>
+    </form>
   );
 }
