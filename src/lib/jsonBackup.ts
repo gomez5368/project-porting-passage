@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { FUEL_TYPES, type AppState, type FillUp } from "@/types/fuel";
+import { FUEL_TYPES, type AppState, type FillUp, type Cost } from "@/types/fuel";
 
 const id = z.string().min(1);
 const nonNegative = z.number().finite().nonnegative();
