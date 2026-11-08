@@ -16,6 +16,8 @@ export const Route = createFileRoute("/naklady")({
       { name: "description", content: "Servis, poistka, pneumatiky, STK a ďalšie výdavky na auto prehľadne na jednom mieste." },
       { property: "og:title", content: "Náklady na auto – Spotreba auta" },
       { property: "og:description", content: "Servis, poistka, pneumatiky, STK a ďalšie výdavky na auto prehľadne na jednom mieste." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: Costs,

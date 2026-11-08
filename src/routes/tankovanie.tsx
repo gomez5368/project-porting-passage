@@ -11,6 +11,8 @@ export const Route = createFileRoute("/tankovanie")({
       { name: "description", content: "Zapíšte tankovanie: stav tachometra, litre, cenu a typ paliva." },
       { property: "og:title", content: "Nové tankovanie – Spotreba auta" },
       { property: "og:description", content: "Zapíšte tankovanie: stav tachometra, litre, cenu a typ paliva." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: Refuel,
