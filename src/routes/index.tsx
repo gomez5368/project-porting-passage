@@ -10,6 +10,8 @@ export const Route = createFileRoute("/")({
       { name: "description", content: "Priemerná spotreba, náklady na palivo a cena za kilometer vášho auta." },
       { property: "og:title", content: "Prehľad spotreby – Spotreba auta" },
       { property: "og:description", content: "Priemerná spotreba, náklady na palivo a cena za kilometer vášho auta." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: Overview,

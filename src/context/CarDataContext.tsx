@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { createId, loadAppState, saveAppState } from '@/lib/storage';
 import { fillUpKey } from '@/lib/importSpotreba';
+import { replaceFillUp, validateBackup } from '@/lib/jsonBackup';
 import type { AppState, Cost, FillUp, Vehicle } from '@/types/fuel';
 
 type NewVehicle = Omit<Vehicle, 'id'>;
@@ -19,6 +20,8 @@ type CarDataContextValue = AppState & {
   selectVehicle: (vehicleId: string) => void;
   addFillUps: (fillUps: NewFillUp[]) => void;
   deleteFillUp: (fillUpId: string) => void;
+  updateFillUp: (fillUpId: string, changes: Omit<FillUp, 'id' | 'vehicleId'>) => void;
+  restoreData: (data: AppState) => void;
   importVehicles: (items: { vehicle: NewVehicle; fillUps: Omit<FillUp, 'id' | 'vehicleId'>[]; costs?: NewCost[] }[]) => void;
 };
 
@@ -96,6 +99,16 @@ export function CarDataProvider({ children }: { children: ReactNode }) {
     setState((prev) => ({ ...prev, fillUps: prev.fillUps.filter((f) => f.id !== fillUpId) }));
   }, []);
 
+  const updateFillUp = useCallback((fillUpId: string, changes: Omit<FillUp, 'id' | 'vehicleId'>) => {
+    setState((prev) => replaceFillUp(prev, fillUpId, changes));
+  }, []);
+
+  const restoreData = useCallback((data: AppState) => {
+    const restored = validateBackup(data);
+    saveAppState(restored);
+    setState(restored);
+  }, []);
+
   const value = useMemo<CarDataContextValue>(() => {
     const selectedVehicle =
       state.vehicles.find((v) => v.id === state.selectedVehicleId) ?? state.vehicles[0] ?? null;
@@ -115,9 +128,11 @@ export function CarDataProvider({ children }: { children: ReactNode }) {
       selectVehicle,
       addFillUps,
       deleteFillUp,
+      updateFillUp,
+      restoreData,
       importVehicles,
     };
-  }, [state, isReady, addVehicle, selectVehicle, addFillUps, deleteFillUp, importVehicles, addCost, deleteCost]);
+  }, [state, isReady, addVehicle, selectVehicle, addFillUps, deleteFillUp, updateFillUp, restoreData, importVehicles, addCost, deleteCost]);
 
   return <CarDataContext.Provider value={value}>{children}</CarDataContext.Provider>;
 }

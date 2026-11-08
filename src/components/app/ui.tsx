@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
-import { Car, Trash2, Upload } from "lucide-react";
+import { Car, Pencil, Trash2, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
@@ -145,7 +145,7 @@ export function TrendChart({ title, points, tone, formatValue, emptyText }: {
   );
 }
 
-export function FillUpRow({ fillUp, consumption, onDelete }: { fillUp: FillUp; consumption: number | null; onDelete: (id: string) => void }) {
+export function FillUpRow({ fillUp, consumption, onDelete, onEdit }: { fillUp: FillUp; consumption: number | null; onDelete: (id: string) => void; onEdit?: (fillUp: FillUp) => void }) {
   const [confirming, setConfirming] = useState(false);
   const meta: [string, string, boolean?][] = [
     ["Litre", `${formatNumber(fillUp.liters, 2)} l`],
@@ -179,9 +179,12 @@ export function FillUpRow({ fillUp, consumption, onDelete }: { fillUp: FillUp; c
           </div>
         </div>
       ) : (
-        <button type="button" onClick={() => setConfirming(true)} className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-destructive hover:underline">
-          <Trash2 className="size-4" /> Vymazať záznam
-        </button>
+        <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-border pt-3">
+          {onEdit ? <Button type="button" variant="outline" size="sm" onClick={() => onEdit(fillUp)}><Pencil className="size-4" /> Upraviť</Button> : null}
+          <Button type="button" variant="ghost" size="sm" onClick={() => setConfirming(true)} className="text-destructive">
+            <Trash2 className="size-4" /> Vymazať záznam
+          </Button>
+        </div>
       )}
     </article>
   );

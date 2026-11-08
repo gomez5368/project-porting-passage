@@ -17,6 +17,8 @@ export const Route = createFileRoute("/vozidla")({
       { name: "description", content: "Spravujte autá, ktorých spotrebu chcete sledovať." },
       { property: "og:title", content: "Vozidlá – Spotreba auta" },
       { property: "og:description", content: "Spravujte autá, ktorých spotrebu chcete sledovať." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: Vehicles,
