@@ -60,3 +60,13 @@ describe("fill-up editing", () => {
     expect(summarizeVehicle(vehicle, updated.fillUps).averageConsumption).toBeNull();
   });
 });
+import { replaceCost as _replaceCost } from "@/lib/jsonBackup";
+describe("cost editing", () => {
+  it("updates a cost in place and keeps id, vehicle and odometer", () => {
+    const s = { vehicles: [], fillUps: [], selectedVehicleId: null,
+      costs: [{ id: "c1", vehicleId: "v", date: "2025-01-01", amount: 20, category: "Údržba", note: "", odometer: 1000 }] };
+    const r = _replaceCost(s, "c1", { date: "2025-02-02", amount: 55.5, category: "STK", note: "x" });
+    expect(r.costs[0]).toEqual({ id: "c1", vehicleId: "v", date: "2025-02-02", amount: 55.5, category: "STK", note: "x", odometer: 1000 });
+    expect(r.costs.reduce((t, c) => t + c.amount, 0)).toBe(55.5);
+  });
+});
