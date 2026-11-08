@@ -1,2 +1,5 @@
 - [x] Náklady zo zálohy Spotreba
 - [x] pcm.db preskúmané (systémový súbor iPhonu, prázdny, nič na import)
+- [ ] JSON záloha a potvrdená obnova všetkých lokálnych dát
+- [ ] Úprava tankovaní s prepočtom štatistík
+- [ ] Overenie exportu, obnovy a úpravy v prehliadači
