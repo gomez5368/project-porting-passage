@@ -85,7 +85,17 @@ function Costs() {
         <CostForm onSubmit={(v) => addCost({ ...v, vehicleId: selectedVehicle.id, odometer: null })} />
       </section>
 
-      <h2 className="mb-3 mt-6 font-semibold">{filter ? `${filter} (${list.length})` : `Všetky náklady (${list.length})`}</h2>
+      <div className="mb-3 mt-6 flex flex-wrap items-center justify-between gap-2">
+        <h2 className="font-semibold">{filter ? `${filter} (${list.length})` : `Všetky náklady (${list.length})`}</h2>
+        <Button
+          variant="outline"
+          size="sm"
+          disabled={list.length === 0}
+          onClick={() => downloadFile(new Blob([serializeCostsCsv(list, vehicles)], { type: "text/csv;charset=utf-8" }), costsCsvFilename(selectedVehicle))}
+        >
+          <Download /> Exportovať CSV
+        </Button>
+      </div>
       {list.length === 0 ? <div className="panel text-muted-foreground">Zatiaľ žiadne náklady.</div> : list.map((c) => (
         <article key={c.id} className="panel mb-2 flex items-start justify-between gap-3">
           <div>
