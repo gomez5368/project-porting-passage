@@ -3,3 +3,6 @@
 - [x] JSON záloha a potvrdená obnova všetkých lokálnych dát
 - [x] Úprava tankovaní s prepočtom štatistík
 - [x] Overenie exportu, obnovy a úpravy v prehliadači
+- [ ] CSV export histórie tankovaní
+- [ ] Percentá nádrže pri vytvorení a úprave tankovania, zachovanie v zálohách
+- [ ] Overenie výpočtu spotreby a uloženia v prehliadači
