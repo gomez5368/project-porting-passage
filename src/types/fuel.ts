@@ -20,6 +20,7 @@ export type FillUp = {
   pricePerLiter: number;
   fuelType: FuelType;
   isFullTank: boolean;
+  tankLevelPercent?: number;
 };
 
 export const COST_CATEGORIES = ['Údržba', 'Výmena oleja', 'Pneumatiky', 'Poistka', 'STK', 'Dane a poplatky', 'Diaľnica', 'Parkovanie', 'Ostatné'] as const;

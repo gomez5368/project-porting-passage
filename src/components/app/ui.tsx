@@ -4,7 +4,7 @@ import { Car, Pencil, Trash2, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
-import { formatCurrency, formatDate, formatNumber } from "@/lib/fuelCalculations";
+import { formatCurrency, formatDate, formatNumber, isFullTankFillUp } from "@/lib/fuelCalculations";
 import { fillUpKey, parseSpotrebaImport, type ImportedFillUp, type ImportResult } from "@/lib/importSpotreba";
 import type { FillUp, Vehicle } from "@/types/fuel";
 
@@ -162,7 +162,7 @@ export function FillUpRow({ fillUp, consumption, onDelete, onEdit }: { fillUp: F
         </div>
         <div className="flex flex-wrap justify-end gap-1.5">
           <span className="rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold">{fillUp.fuelType}</span>
-          {fillUp.isFullTank ? <span className="rounded-full bg-accent px-2.5 py-0.5 text-xs font-semibold text-accent-foreground">Plná nádrž</span> : null}
+          <span className="rounded-full bg-accent px-2.5 py-0.5 text-xs font-semibold text-accent-foreground">{fillUp.tankLevelPercent !== undefined ? `Nádrž ${formatNumber(fillUp.tankLevelPercent, 1)} %` : isFullTankFillUp(fillUp) ? "Plná nádrž" : "Neúplná nádrž"}</span>
         </div>
       </div>
       <dl className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">

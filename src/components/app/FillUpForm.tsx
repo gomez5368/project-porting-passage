@@ -1,13 +1,13 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { FormField, SegmentedControl } from "@/components/app/ui";
-import { formatCurrency, formatNumber } from "@/lib/fuelCalculations";
+import { formatCurrency, formatNumber, isFullTankFillUp } from "@/lib/fuelCalculations";
 import { parseDecimal } from "@/lib/parseDecimal";
 import { FUEL_TYPES, type FillUp, type FuelType } from "@/types/fuel";
 
 type PriceMode = "total" | "perLiter";
 type FullTank = "yes" | "no";
-type Errors = Partial<Record<"date" | "odometer" | "liters" | "price", string>>;
+type Errors = Partial<Record<"date" | "odometer" | "liters" | "price" | "tankLevel", string>>;
 
 function todayIso() {
   const n = new Date();
@@ -27,7 +27,8 @@ export function FillUpForm({ latestOdometer, initialFillUp, onSubmit }: { latest
   const [priceMode, setPriceMode] = useState<PriceMode>("total");
   const [priceValue, setPriceValue] = useState(() => initialFillUp ? String(initialFillUp.totalCost) : "");
   const [fuelType, setFuelType] = useState<FuelType>(initialFillUp?.fuelType ?? "Benzín");
-  const [full, setFull] = useState<FullTank>(initialFillUp?.isFullTank === false ? "no" : "yes");
+  const [full, setFull] = useState<FullTank>(initialFillUp && isFullTankFillUp(initialFillUp) ? "yes" : "no");
+  const [tankLevel, setTankLevel] = useState(() => initialFillUp?.tankLevelPercent !== undefined ? String(initialFillUp.tankLevelPercent) : "");
   const [errors, setErrors] = useState<Errors>({});
   const [saved, setSaved] = useState<string | null>(null);
 
@@ -47,6 +48,8 @@ export function FillUpForm({ latestOdometer, initialFillUp, onSubmit }: { latest
     else if (!initialFillUp && o < latestOdometer) next.odometer = `Stav tachometra nesmie byť nižší ako ${formatNumber(latestOdometer)} km.`;
     if (!okL) next.liters = "Zadajte množstvo litrov väčšie ako 0.";
     if (!okP) next.price = priceMode === "total" ? "Zadajte celkovú cenu väčšiu ako 0." : "Zadajte cenu za liter väčšiu ako 0.";
+    const percent = tankLevel.trim() === "" ? undefined : parseDecimal(tankLevel);
+    if (percent !== undefined && (!Number.isFinite(percent) || percent < 0 || percent > 100)) next.tankLevel = "Zadajte hodnotu od 0 do 100 %.";
     setErrors(next);
     setSaved(null);
     if (Object.keys(next).length > 0 || total === null || perL === null) return;
@@ -54,10 +57,12 @@ export function FillUpForm({ latestOdometer, initialFillUp, onSubmit }: { latest
       date, odometer: o, liters: l,
       totalCost: Math.round(total * 100) / 100,
       pricePerLiter: Math.round(perL * 1000) / 1000,
-      fuelType, isFullTank: full === "yes",
+      fuelType, isFullTank: percent === undefined ? full === "yes" : percent === 100,
+      ...(percent === undefined ? {} : { tankLevelPercent: percent }),
     });
     if (initialFillUp) return;
     setOdometer(""); setLiters(""); setPriceValue("");
+    setTankLevel(""); setFull("no");
     setSaved("Tankovanie bolo uložené.");
   };
 
@@ -81,7 +86,15 @@ export function FillUpForm({ latestOdometer, initialFillUp, onSubmit }: { latest
       </div>
       <div className="space-y-2">
         <p className="text-sm font-semibold text-muted-foreground">Natankované do plnej nádrže?</p>
-        <SegmentedControl options={["yes", "no"] as const} value={full} onChange={setFull} labels={{ yes: "Áno", no: "Nie" }} />
+        <SegmentedControl options={["yes", "no"] as const} value={full} onChange={(value) => {
+          setFull(value);
+          if (value === "yes") setTankLevel("100");
+          else if (parseDecimal(tankLevel) === 100) setTankLevel("");
+        }} labels={{ yes: "Áno", no: "Nie" }} />
+        <FormField label="Obsah nádrže po natankovaní" value={tankLevel} onChange={(value) => {
+          setTankLevel(value);
+          setFull(parseDecimal(value) === 100 ? "yes" : "no");
+        }} inputMode="decimal" placeholder="napr. 75" suffix="%" error={errors.tankLevel} />
         <p className="text-sm text-muted-foreground">Spotreba sa počíta len medzi dvoma tankovaniami do plnej nádrže.</p>
       </div>
       {saved ? <p className="font-semibold text-success">{saved}</p> : null}

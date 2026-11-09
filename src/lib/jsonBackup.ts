@@ -12,6 +12,7 @@ const stateSchema = z.object({
   fillUps: z.array(z.object({
     id, vehicleId: id, date, odometer: nonNegative.int(), liters: z.number().finite().positive(),
     totalCost: nonNegative, pricePerLiter: nonNegative, fuelType: z.enum(FUEL_TYPES), isFullTank: z.boolean(),
+    tankLevelPercent: z.number().finite().min(0).max(100).optional(),
   })),
   costs: z.array(z.object({
     id, vehicleId: id, date, amount: nonNegative, category: z.string().min(1), note: z.string(), odometer: nonNegative.nullable(),
