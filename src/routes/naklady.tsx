@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { Pencil, Trash2 } from "lucide-react";
+import { Download, Pencil, Trash2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { EmptyVehicleState, FormField, ScreenHeader, VehicleSwitcher } from "@/components/app/ui";
 import { useCarData } from "@/context/CarDataContext";
+import { costsCsvFilename, serializeCostsCsv } from "@/lib/costsCsv";
+import { downloadFile } from "@/lib/downloadFile";
 import { formatCurrency, formatDate, formatNumber } from "@/lib/fuelCalculations";
 import { parseDecimal } from "@/lib/parseDecimal";
 import { cn } from "@/lib/utils";
@@ -83,7 +85,17 @@ function Costs() {
         <CostForm onSubmit={(v) => addCost({ ...v, vehicleId: selectedVehicle.id, odometer: null })} />
       </section>
 
-      <h2 className="mb-3 mt-6 font-semibold">{filter ? `${filter} (${list.length})` : `Všetky náklady (${list.length})`}</h2>
+      <div className="mb-3 mt-6 flex flex-wrap items-center justify-between gap-2">
+        <h2 className="font-semibold">{filter ? `${filter} (${list.length})` : `Všetky náklady (${list.length})`}</h2>
+        <Button
+          variant="outline"
+          size="sm"
+          disabled={list.length === 0}
+          onClick={() => downloadFile(new Blob([serializeCostsCsv(list, vehicles)], { type: "text/csv;charset=utf-8" }), costsCsvFilename(selectedVehicle))}
+        >
+          <Download /> Exportovať CSV
+        </Button>
+      </div>
       {list.length === 0 ? <div className="panel text-muted-foreground">Zatiaľ žiadne náklady.</div> : list.map((c) => (
         <article key={c.id} className="panel mb-2 flex items-start justify-between gap-3">
           <div>
