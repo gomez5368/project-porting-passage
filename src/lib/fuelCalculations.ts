@@ -23,6 +23,10 @@ export function sortFillUps(fillUps: FillUp[]): FillUp[] {
   });
 }
 
+export function isFullTankFillUp(fillUp: Pick<FillUp, 'isFullTank' | 'tankLevelPercent'>): boolean {
+  return fillUp.tankLevelPercent === undefined ? fillUp.isFullTank : fillUp.tankLevelPercent === 100;
+}
+
 export function buildConsumptionSegments(fillUps: FillUp[]): ConsumptionSegment[] {
   const segments: ConsumptionSegment[] = [];
   let litersSinceLastFull = 0;
@@ -30,7 +34,7 @@ export function buildConsumptionSegments(fillUps: FillUp[]): ConsumptionSegment[
 
   for (const fillUp of sortFillUps(fillUps)) {
     litersSinceLastFull += fillUp.liters;
-    if (!fillUp.isFullTank) continue;
+    if (!isFullTankFillUp(fillUp)) continue;
 
     if (lastFull && fillUp.odometer > lastFull.odometer) {
       const km = fillUp.odometer - lastFull.odometer;

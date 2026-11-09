@@ -1,5 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
+import { Download } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { serializeFillUpsCsv } from "@/lib/fillUpsCsv";
+import { downloadFile } from "@/lib/downloadFile";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { FillUpForm } from "@/components/app/FillUpForm";
 import { JsonBackupSection } from "@/components/app/JsonBackupSection";
@@ -36,6 +40,12 @@ function History() {
           <VehicleSwitcher vehicles={vehicles} selectedId={selectedVehicle.id} onSelect={selectVehicle} />
           <ImportSpotrebaCard existingFillUps={selectedFillUps}
             onImport={(r) => addFillUps(r.map((x) => ({ ...x, vehicleId: selectedVehicle.id })))} />
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+            <h2 className="font-semibold">Všetky tankovania</h2>
+            <Button variant="outline" size="sm" disabled={selectedFillUps.length === 0} onClick={() => downloadFile(
+              new Blob([serializeFillUpsCsv(selectedFillUps, vehicles)], { type: "text/csv;charset=utf-8" }), "tankovania.csv",
+            )}><Download className="size-4" />Exportovať CSV</Button>
+          </div>
           {newest.length === 0 ? (
             <div className="panel text-muted-foreground">Zatiaľ nemáte žiadne tankovanie. Zapíšte prvé na karte Tankovanie.</div>
           ) : (
