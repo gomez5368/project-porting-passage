@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { Pencil, Trash2 } from "lucide-react";
+import { Download, Pencil, Trash2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { EmptyVehicleState, FormField, ScreenHeader, VehicleSwitcher } from "@/components/app/ui";
 import { useCarData } from "@/context/CarDataContext";
+import { costsCsvFilename, serializeCostsCsv } from "@/lib/costsCsv";
+import { downloadFile } from "@/lib/downloadFile";
 import { formatCurrency, formatDate, formatNumber } from "@/lib/fuelCalculations";
 import { parseDecimal } from "@/lib/parseDecimal";
 import { cn } from "@/lib/utils";
