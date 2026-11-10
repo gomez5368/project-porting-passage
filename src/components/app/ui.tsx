@@ -162,7 +162,7 @@ export function FillUpRow({ fillUp, consumption, onDelete, onEdit }: { fillUp: F
         </div>
         <div className="flex flex-wrap justify-end gap-1.5">
           <span className="rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold">{fillUp.fuelType}</span>
-          <span className="rounded-full bg-accent px-2.5 py-0.5 text-xs font-semibold text-accent-foreground">{fillUp.tankLevelPercent !== undefined ? `Nádrž ${formatNumber(fillUp.tankLevelPercent, 1)} %` : isFullTankFillUp(fillUp) ? "Plná nádrž" : "Neúplná nádrž"}</span>
+          <span className="rounded-full bg-accent px-2.5 py-0.5 text-xs font-semibold text-accent-foreground">{fillUp.tankLevelPercent !== undefined ? `Nádrž ${formatNumber(fillUp.tankLevelPercent, 0)} %` : isFullTankFillUp(fillUp) ? "Plná nádrž" : "Neúplná nádrž"}</span>
         </div>
       </div>
       <dl className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
