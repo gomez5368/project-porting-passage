@@ -1,0 +1,76 @@
+// Merges vehicles, fill-ups and costs read from a Spotreba .db3 backup into the saved state.
+// Matching records are never duplicated; existing fill-ups without a tank percentage receive it from the backup.
+import { fillUpKey } from '@/lib/importSpotreba';
+import type { AppState, Cost, FillUp, Vehicle } from '@/types/fuel';
+
+type NewFillUp = Omit<FillUp, 'id' | 'vehicleId'>;
+type NewCost = Omit<Cost, 'id' | 'vehicleId'>;
+
+export type ImportItem = { vehicle: Omit<Vehicle, 'id'>; fillUps: NewFillUp[]; costs?: NewCost[] };
+export type ImportItemStats = {
+  existing: boolean;
+  newFillUps: NewFillUp[];
+  duplicateFillUps: number;
+  newCosts: NewCost[];
+  percentsFilled: number;
+};
+
+export const costKey = (c: Pick<Cost, 'date' | 'amount' | 'category'>) => `${c.date}|${c.amount.toFixed(2)}|${c.category}`;
+
+export function mergeImport(
+  prev: AppState,
+  items: ImportItem[],
+  makeId: () => string,
+): { state: AppState; stats: ImportItemStats[] } {
+  const vehicles = [...prev.vehicles];
+  const fillUps = [...prev.fillUps];
+  const costs = [...prev.costs];
+  const stats: ImportItemStats[] = [];
+
+  for (const item of items) {
+    const existing = vehicles.find(
+      (v) => v.brand === item.vehicle.brand && v.model === item.vehicle.model && v.year === item.vehicle.year,
+    );
+    const target = existing ?? { ...item.vehicle, id: makeId() };
+    if (!existing) vehicles.push(target);
+
+    // Index of this vehicle's saved fill-ups by key, so a match can be updated in place.
+    const indexByKey = new Map<string, number>();
+    fillUps.forEach((f, i) => {
+      if (f.vehicleId === target.id && !indexByKey.has(fillUpKey(f))) indexByKey.set(fillUpKey(f), i);
+    });
+
+    const item_stats: ImportItemStats = { existing: !!existing, newFillUps: [], duplicateFillUps: 0, newCosts: [], percentsFilled: 0 };
+    for (const f of item.fillUps) {
+      const key = fillUpKey(f);
+      const index = indexByKey.get(key);
+      if (index !== undefined) {
+        item_stats.duplicateFillUps++;
+        const saved = fillUps[index];
+        // Only fill a missing percentage; never overwrite a value the user entered or edited.
+        if (saved && saved.tankLevelPercent === undefined && f.tankLevelPercent !== undefined) {
+          fillUps[index] = { ...saved, tankLevelPercent: f.tankLevelPercent };
+          item_stats.percentsFilled++;
+        }
+        continue;
+      }
+      indexByKey.set(key, fillUps.length);
+      fillUps.push({ ...f, id: makeId(), vehicleId: target.id });
+      item_stats.newFillUps.push(f);
+    }
+
+    const cKeys = new Set(costs.filter((c) => c.vehicleId === target.id).map(costKey));
+    for (const c of item.costs ?? []) {
+      if (cKeys.has(costKey(c))) continue;
+      cKeys.add(costKey(c));
+      costs.push({ ...c, id: makeId(), vehicleId: target.id });
+      item_stats.newCosts.push(c);
+    }
+    stats.push(item_stats);
+  }
+
+  return {
+    state: { vehicles, fillUps, costs, selectedVehicleId: prev.selectedVehicleId ?? vehicles[0]?.id ?? null },
+    stats,
+  };
+}
