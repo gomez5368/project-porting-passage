@@ -33,3 +33,4 @@ use the editor.
 - JSON backup validation and serialization live in a browser-safe shared module; restores replace the complete state only after validation and confirmation to avoid partial or orphaned data.
 - Fill-up creation and editing share one form; updates preserve record and vehicle IDs so derived statistics automatically follow the current history.
 - Optional post-fill tank percentages override the legacy full-tank flag in calculations and exports; legacy records without percentages retain their original meaning.
+- App source lives only in src/ (TanStack Start); old Bolt/Expo or Next.js files uploaded to the repo root are not part of the app and break package.json/tsconfig, so they must not be merged in.
