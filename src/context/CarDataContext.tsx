@@ -1,13 +1,13 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { createId, loadAppState, saveAppState } from '@/lib/storage';
-import { fillUpKey } from '@/lib/importSpotreba';
+import { mergeImport } from '@/lib/backupMerge';
 import { replaceCost, replaceFillUp, validateBackup } from '@/lib/jsonBackup';
 import type { AppState, Cost, FillUp, Vehicle } from '@/types/fuel';
 
 type NewVehicle = Omit<Vehicle, 'id'>;
 type NewFillUp = Omit<FillUp, 'id'>;
 type NewCost = Omit<Cost, 'id' | 'vehicleId'>;
-export const costKey = (c: Pick<Cost, 'date' | 'amount' | 'category'>) => `${c.date}|${c.amount.toFixed(2)}|${c.category}`;
+export { costKey } from '@/lib/backupMerge';
 
 type CarDataContextValue = AppState & {
   isReady: boolean;
@@ -61,31 +61,7 @@ export function CarDataProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const importVehicles = useCallback((items: { vehicle: NewVehicle; fillUps: Omit<FillUp, 'id' | 'vehicleId'>[]; costs?: NewCost[] }[]) => {
-    setState((prev) => {
-      const vehicles = [...prev.vehicles];
-      const fillUps = [...prev.fillUps];
-      const costs = [...prev.costs];
-      for (const item of items) {
-        const existing = vehicles.find(
-          (v) => v.brand === item.vehicle.brand && v.model === item.vehicle.model && v.year === item.vehicle.year,
-        );
-        const target = existing ?? { ...item.vehicle, id: createId() };
-        if (!existing) vehicles.push(target);
-        const keys = new Set(fillUps.filter((f) => f.vehicleId === target.id).map(fillUpKey));
-        for (const f of item.fillUps) {
-          if (keys.has(fillUpKey(f))) continue;
-          keys.add(fillUpKey(f));
-          fillUps.push({ ...f, id: createId(), vehicleId: target.id });
-        }
-        const cKeys = new Set(costs.filter((c) => c.vehicleId === target.id).map(costKey));
-        for (const c of item.costs ?? []) {
-          if (cKeys.has(costKey(c))) continue;
-          cKeys.add(costKey(c));
-          costs.push({ ...c, id: createId(), vehicleId: target.id });
-        }
-      }
-      return { vehicles, fillUps, costs, selectedVehicleId: prev.selectedVehicleId ?? vehicles[0]?.id ?? null };
-    });
+    setState((prev) => mergeImport(prev, items, createId).state);
   }, []);
 
   const addCost = useCallback((cost: NewCost & { vehicleId: string }) => {

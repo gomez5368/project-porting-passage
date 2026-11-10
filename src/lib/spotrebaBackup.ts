@@ -3,7 +3,7 @@
 import type { Cost, FillUp, FuelType, Vehicle } from "@/types/fuel";
 
 export type BackupCarRow = { source: number; pk: number; name: string; year: number | null; fuel: string | null; startOdometer: number | null };
-export type BackupGasRow = { carSource: number; carPk: number; odometer: number; price: number; volume: number; timestamp: number; partial: number };
+export type BackupGasRow = { carSource: number; carPk: number; odometer: number; price: number; volume: number; timestamp: number; partial: number; tankStatus?: number | null };
 
 export type BackupCostRow = { carSource: number; carPk: number; price: number; timestamp: number; type: string | null; notes: string | null; odometer: number | null };
 export type BackupVehicle = Omit<Vehicle, "id"> & { fillUps: Omit<FillUp, "id" | "vehicleId">[]; costs: Omit<Cost, "id" | "vehicleId">[]; skipped: number };
@@ -27,6 +27,14 @@ export function splitCarName(name: string): { brand: string; model: string } {
 function isoDate(unixSeconds: number): string {
   const d = new Date(unixSeconds * 1000);
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+/** Tank level after the fill-up (0–100 %). When present it decides "full" (only 100 %); otherwise the partial flag is used. */
+function tankFields(g: BackupGasRow): { isFullTank: boolean; tankLevelPercent?: number } {
+  const p = g.tankStatus;
+  if (p == null || !Number.isFinite(p) || p < 0 || p > 100) return { isFullTank: g.partial === 0 };
+  const percent = Math.round(p * 10) / 10;
+  return { isFullTank: percent === 100, tankLevelPercent: percent };
 }
 
 export function convertBackup(cars: BackupCarRow[], gases: BackupGasRow[], costRows: BackupCostRow[] = []): BackupResult {
@@ -59,7 +67,7 @@ export function convertBackup(cars: BackupCarRow[], gases: BackupGasRow[], costR
       liters, totalCost,
       pricePerLiter: Math.round((totalCost / liters) * 1000) / 1000,
       fuelType: fuelByKey.get(key) ?? "Benzín",
-      isFullTank: g.partial === 0,
+      ...tankFields(g),
     });
   }
   for (const c of costRows) {
@@ -97,9 +105,12 @@ export async function readSpotrebaBackup(file: File): Promise<BackupResult> {
       source: Number(r[0]), pk: Number(r[1]), name: String(r[2] ?? ""), year: r[3] == null ? null : Number(r[3]),
       fuel: r[4] == null ? null : String(r[4]), startOdometer: r[5] == null ? null : Number(r[5]),
     }));
-    const gases = rows("SELECT ZCAR_SOURCE, Z1CONSUMPIONS, ZODOMETER, ZPRICE, ZVOLUME, ZTIMESTAMP, ZPARTIALFILLUP FROM Gases").map((r) => ({
+    const gasColumns = new Set((db.exec("PRAGMA table_info(Gases)")[0]?.values ?? []).map((r) => String(r[1])));
+    const tankColumn = gasColumns.has("Z_GAS_TANK_STATUS") ? "Z_GAS_TANK_STATUS" : "NULL";
+    const gases = rows(`SELECT ZCAR_SOURCE, Z1CONSUMPIONS, ZODOMETER, ZPRICE, ZVOLUME, ZTIMESTAMP, ZPARTIALFILLUP, ${tankColumn} FROM Gases`).map((r) => ({
       carSource: Number(r[0]), carPk: Number(r[1]), odometer: Number(r[2]), price: Number(r[3]),
       volume: Number(r[4]), timestamp: Number(r[5]), partial: Number(r[6] ?? 0),
+      tankStatus: r[7] == null ? null : Number(r[7]),
     }));
     const costs = tables.has("Costs")
       ? rows("SELECT ZCAR_SOURCE, Z1COSTS, ZPRICE, ZTIMESTAMP, ZTYPE, ZNOTES, zODOMETER FROM Costs").map((r) => ({
