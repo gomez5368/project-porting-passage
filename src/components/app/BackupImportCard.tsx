@@ -2,13 +2,13 @@ import { useState } from "react";
 import { Database } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { costKey, useCarData } from "@/context/CarDataContext";
+import { useCarData } from "@/context/CarDataContext";
 import { formatCurrency, formatDate, formatNumber } from "@/lib/fuelCalculations";
 import { readSpotrebaBackup, type BackupResult } from "@/lib/spotrebaBackup";
-import { fillUpKey } from "@/lib/importSpotreba";
+import { mergeImport } from "@/lib/backupMerge";
 
 export function BackupImportCard() {
-  const { vehicles, fillUps, costs, importVehicles } = useCarData();
+  const { vehicles, fillUps, costs, selectedVehicleId, importVehicles } = useCarData();
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -29,26 +29,27 @@ export function BackupImportCard() {
     }
   };
 
-  // Count what is genuinely new against what is already saved in this browser.
-  const preview = result?.vehicles.map((v) => {
-    const existing = vehicles.find((e) => e.brand === v.brand && e.model === v.model && e.year === v.year);
-    const keys = new Set(existing ? fillUps.filter((f) => f.vehicleId === existing.id).map(fillUpKey) : []);
-    const fresh = v.fillUps.filter((f) => !keys.has(fillUpKey(f)));
-    const cKeys = new Set(existing ? costs.filter((c) => c.vehicleId === existing.id).map(costKey) : []);
-    const freshCosts = v.costs.filter((c) => !cKeys.has(costKey(c)));
-    return { v, existing: !!existing, fresh, freshCosts, dupes: v.fillUps.length - fresh.length };
-  }) ?? [];
+  // Dry-run the same merge the import uses, so the preview matches exactly what gets saved.
+  const items = result?.vehicles.map((v) => ({
+    vehicle: { brand: v.brand, model: v.model, year: v.year, initialOdometer: v.initialOdometer },
+    fillUps: v.fillUps,
+    costs: v.costs,
+  })) ?? [];
+  const stats = result ? mergeImport({ vehicles, fillUps, costs, selectedVehicleId }, items, () => "preview").stats : [];
+  const preview = (result?.vehicles ?? []).map((v, i) => {
+    const s = stats[i]!;
+    return { v, existing: s.existing, fresh: s.newFillUps, freshCosts: s.newCosts, dupes: s.duplicateFillUps, percents: s.percentsFilled };
+  });
   const totalNew = preview.reduce((s, p) => s + p.fresh.length, 0);
   const totalCosts = preview.reduce((s, p) => s + p.freshCosts.length, 0);
+  const totalPercents = preview.reduce((s, p) => s + p.percents, 0);
   const newCars = preview.filter((p) => !p.existing).length;
+  const hasChanges = totalNew > 0 || newCars > 0 || totalCosts > 0 || totalPercents > 0;
 
   const save = () => {
-    importVehicles(preview.map(({ v }) => ({
-      vehicle: { brand: v.brand, model: v.model, year: v.year, initialOdometer: v.initialOdometer },
-      fillUps: v.fillUps,
-      costs: v.costs,
-    })));
-    setDone(`Importované: ${newCars} vozidiel a ${totalNew} tankovaní a ${totalCosts} nákladov.`);
+    importVehicles(items);
+    setDone(`Importované: ${newCars} vozidiel, ${totalNew} tankovaní, ${totalCosts} nákladov` +
+      (totalPercents > 0 ? `; doplnené percentá nádrže pri ${totalPercents} tankovaniach.` : "."));
     close();
   };
 
@@ -79,9 +80,10 @@ export function BackupImportCard() {
             <div className="space-y-3">
               <div className="rounded-lg bg-accent p-3 text-sm">
                 <p className="font-semibold text-accent-foreground">Nové: {newCars} vozidiel · {totalNew} tankovaní · {totalCosts} nákladov</p>
+                {totalPercents > 0 ? <p className="font-semibold text-accent-foreground">Doplníme percentá nádrže k {totalPercents} už uloženým tankovaniam</p> : null}
                 {result.orphanFillUps > 0 ? <p>Tankovania bez priradeného auta (preskočíme): {result.orphanFillUps}</p> : null}
               </div>
-              {preview.map(({ v, existing, fresh, freshCosts, dupes }) => (
+              {preview.map(({ v, existing, fresh, freshCosts, dupes, percents }) => (
                 <div key={`${v.brand}-${v.model}-${v.year}`} className="rounded-lg border border-border p-3 text-sm">
                   <div className="flex items-center justify-between gap-2">
                     <p className="font-semibold">{v.brand} {v.model}</p>
@@ -91,8 +93,9 @@ export function BackupImportCard() {
                     {v.year} · {v.fillUps[0]?.fuelType ?? "—"} · počiatočný stav {formatNumber(v.initialOdometer)} km
                   </p>
                   <p className="mt-1">Nových tankovaní: <b>{fresh.length}</b>
-                    {dupes > 0 ? ` · duplicitných (preskočíme): ${dupes}` : ""}
+                    {dupes > 0 ? ` · už uložených (nepridáme znova): ${dupes}` : ""}
                     {v.skipped > 0 ? ` · chybných (preskočíme): ${v.skipped}` : ""}</p>
+                  {percents > 0 ? <p>Doplnené percentá nádrže: <b>{percents}</b></p> : null}
                   <p>Nových nákladov: <b>{freshCosts.length}</b>
                     {freshCosts.length > 0 ? ` · spolu ${formatCurrency(freshCosts.reduce((s, c) => s + c.amount, 0))}` : ""}</p>
                   {fresh.length > 0 ? (
@@ -108,8 +111,8 @@ export function BackupImportCard() {
                   {fresh.length > 5 ? <p className="mt-1 text-xs text-muted-foreground">Zobrazených posledných 5 z {fresh.length}.</p> : null}
                 </div>
               ))}
-              <Button className="w-full" size="lg" onClick={save} disabled={totalNew === 0 && newCars === 0 && totalCosts === 0}>
-                {totalNew > 0 || newCars > 0 || totalCosts > 0 ? `Importovať ${totalNew} tankovaní a ${totalCosts} nákladov` : "Všetko je už uložené"}
+              <Button className="w-full" size="lg" onClick={save} disabled={!hasChanges}>
+                {!hasChanges ? "Všetko je už uložené" : totalNew > 0 || totalCosts > 0 ? `Importovať ${totalNew} tankovaní a ${totalCosts} nákladov` : `Doplniť percentá k ${totalPercents} tankovaniam`}
               </Button>
             </div>
           ) : null}

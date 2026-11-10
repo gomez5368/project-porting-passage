@@ -40,23 +40,23 @@ export function mergeImport(
       if (f.vehicleId === target.id && !indexByKey.has(fillUpKey(f))) indexByKey.set(fillUpKey(f), i);
     });
 
-    const item_stats: ImportItemStats = { existing: !!existing, newFillUps: [], duplicateFillUps: 0, newCosts: [], percentsFilled: 0 };
+    const itemStats: ImportItemStats = { existing: !!existing, newFillUps: [], duplicateFillUps: 0, newCosts: [], percentsFilled: 0 };
     for (const f of item.fillUps) {
       const key = fillUpKey(f);
       const index = indexByKey.get(key);
       if (index !== undefined) {
-        item_stats.duplicateFillUps++;
+        itemStats.duplicateFillUps++;
         const saved = fillUps[index];
         // Only fill a missing percentage; never overwrite a value the user entered or edited.
         if (saved && saved.tankLevelPercent === undefined && f.tankLevelPercent !== undefined) {
           fillUps[index] = { ...saved, tankLevelPercent: f.tankLevelPercent };
-          item_stats.percentsFilled++;
+          itemStats.percentsFilled++;
         }
         continue;
       }
       indexByKey.set(key, fillUps.length);
       fillUps.push({ ...f, id: makeId(), vehicleId: target.id });
-      item_stats.newFillUps.push(f);
+      itemStats.newFillUps.push(f);
     }
 
     const cKeys = new Set(costs.filter((c) => c.vehicleId === target.id).map(costKey));
@@ -64,9 +64,9 @@ export function mergeImport(
       if (cKeys.has(costKey(c))) continue;
       cKeys.add(costKey(c));
       costs.push({ ...c, id: makeId(), vehicleId: target.id });
-      item_stats.newCosts.push(c);
+      itemStats.newCosts.push(c);
     }
-    stats.push(item_stats);
+    stats.push(itemStats);
   }
 
   return {
