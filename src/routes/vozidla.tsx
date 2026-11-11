@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { Pencil, Plus } from "lucide-react";
+import { Pencil, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { FormField, ScreenHeader } from "@/components/app/ui";
 import { BackupImportCard } from "@/components/app/BackupImportCard";
 import { useCarData } from "@/context/CarDataContext";
@@ -27,7 +28,11 @@ export const Route = createFileRoute("/vozidla")({
 type Errors = Partial<Record<"brand" | "model" | "year" | "initialOdometer" | "tankCapacity", string>>;
 
 function Vehicles() {
-  const { vehicles, selectedVehicle, addVehicle, updateVehicle, selectVehicle } = useCarData();
+  const { vehicles, fillUps, costs, selectedVehicle, addVehicle, updateVehicle, deleteVehicle, selectVehicle } = useCarData();
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const deleting = vehicles.find((v) => v.id === deletingId) ?? null;
+  const deletingFillUps = deleting ? fillUps.filter((f) => f.vehicleId === deleting.id).length : 0;
+  const deletingCosts = deleting ? costs.filter((c) => c.vehicleId === deleting.id).length : 0;
   const [editingId, setEditingId] = useState<string | null>(null);
   const [tank, setTank] = useState("");
   const [open, setOpen] = useState(false);
@@ -75,7 +80,7 @@ function Vehicles() {
             return (
               <div key={v.id} className="relative">
               <button type="button" onClick={() => selectVehicle(v.id)}
-                className={cn("panel block w-full pr-14 text-left transition-colors", active ? "border-primary" : "hover:bg-muted")}>
+                className={cn("panel block w-full pr-24 text-left transition-colors", active ? "border-primary" : "hover:bg-muted")}>
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-lg font-semibold">{v.brand} {v.model}</span>
                   {active ? <span className="rounded-full bg-accent px-2.5 py-0.5 text-xs font-semibold text-accent-foreground">Aktívne</span> : null}
@@ -86,12 +91,27 @@ function Vehicles() {
                   <div><p className="text-xs text-muted-foreground">Objem nádrže</p><p className="tabular font-semibold">{v.tankCapacity !== undefined ? `${formatNumber(v.tankCapacity)} l` : "—"}</p></div>
                 </div>
               </button>
-              <Button type="button" variant="ghost" size="icon" aria-label={`Upraviť vozidlo ${v.brand} ${v.model}`} className="absolute right-3 top-3" onClick={() => startEdit(v)}><Pencil /></Button>
+              <Button type="button" variant="ghost" size="icon" aria-label={`Upraviť vozidlo ${v.brand} ${v.model}`} className="absolute right-14 top-3" onClick={() => startEdit(v)}><Pencil /></Button>
+              <Button type="button" variant="ghost" size="icon" aria-label={`Zmazať vozidlo ${v.brand} ${v.model}`} className="absolute right-3 top-3 text-destructive hover:text-destructive" onClick={() => setDeletingId(v.id)}><Trash2 /></Button>
               </div>
             );
           })}
         </div>
       )}
+      <AlertDialog open={deleting !== null} onOpenChange={(o) => { if (!o) setDeletingId(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Zmazať vozidlo {deleting?.brand} {deleting?.model}?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Spolu s vozidlom sa natrvalo zmaže aj {deletingFillUps} tankovaní a {deletingCosts} nákladov. Ak si ich chcete ponechať, najprv si v Histórii exportujte zálohu (JSON).
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Zrušiť</AlertDialogCancel>
+            <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={() => { if (deleting) deleteVehicle(deleting.id); setDeletingId(null); }}>Zmazať</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
       <Dialog open={open} onOpenChange={(o) => { if (!o) reset(); setOpen(o); }}>
         <DialogContent>
           <DialogHeader><DialogTitle>{editingId ? "Upraviť vozidlo" : "Nové vozidlo"}</DialogTitle></DialogHeader>
