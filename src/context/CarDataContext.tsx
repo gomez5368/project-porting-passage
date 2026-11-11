@@ -19,6 +19,7 @@ type CarDataContextValue = AppState & {
   updateCost: (costId: string, changes: Pick<Cost, 'date' | 'amount' | 'category' | 'note'>) => void;
   addVehicle: (vehicle: NewVehicle) => Vehicle;
   selectVehicle: (vehicleId: string) => void;
+  updateVehicle: (vehicleId: string, data: NewVehicle) => void;
   addFillUps: (fillUps: NewFillUp[]) => void;
   deleteFillUp: (fillUpId: string) => void;
   updateFillUp: (fillUpId: string, changes: Omit<FillUp, 'id' | 'vehicleId'>) => void;
@@ -49,6 +50,10 @@ export function CarDataProvider({ children }: { children: ReactNode }) {
       selectedVehicleId: prev.selectedVehicleId ?? created.id,
     }));
     return created;
+  }, []);
+
+  const updateVehicle = useCallback((vehicleId: string, data: NewVehicle) => {
+    setState((prev) => ({ ...prev, vehicles: prev.vehicles.map((v) => (v.id === vehicleId ? { ...data, id: v.id } : v)) }));
   }, []);
 
   const selectVehicle = useCallback((vehicleId: string) => {
@@ -108,13 +113,14 @@ export function CarDataProvider({ children }: { children: ReactNode }) {
       isReady,
       addVehicle,
       selectVehicle,
+      updateVehicle,
       addFillUps,
       deleteFillUp,
       updateFillUp,
       restoreData,
       importVehicles,
     };
-  }, [state, isReady, addVehicle, selectVehicle, addFillUps, deleteFillUp, updateFillUp, restoreData, importVehicles, addCost, deleteCost, updateCost]);
+  }, [state, isReady, addVehicle, selectVehicle, updateVehicle, addFillUps, deleteFillUp, updateFillUp, restoreData, importVehicles, addCost, deleteCost, updateCost]);
 
   return <CarDataContext.Provider value={value}>{children}</CarDataContext.Provider>;
 }

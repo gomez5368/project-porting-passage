@@ -8,6 +8,8 @@ export type Vehicle = {
   model: string;
   year: number;
   initialOdometer: number;
+  /** Tank capacity in liters (0–1000). */
+  tankCapacity?: number | undefined;
 };
 
 export type FillUp = {

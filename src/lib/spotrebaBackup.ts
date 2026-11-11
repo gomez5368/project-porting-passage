@@ -2,7 +2,7 @@
 // Only the Cars and Gases tables are read; account/settings tables are never touched.
 import type { Cost, FillUp, FuelType, Vehicle } from "@/types/fuel";
 
-export type BackupCarRow = { source: number; pk: number; name: string; year: number | null; fuel: string | null; startOdometer: number | null };
+export type BackupCarRow = { source: number; pk: number; name: string; year: number | null; fuel: string | null; startOdometer: number | null; tankCapacity?: number | null };
 export type BackupGasRow = { carSource: number; carPk: number; odometer: number; price: number; volume: number; timestamp: number; partial: number; tankStatus?: number | null };
 
 export type BackupCostRow = { carSource: number; carPk: number; price: number; timestamp: number; type: string | null; notes: string | null; odometer: number | null };
@@ -46,6 +46,7 @@ export function convertBackup(cars: BackupCarRow[], gases: BackupGasRow[], costR
       brand, model,
       year: car.year && car.year > 1900 ? car.year : new Date().getFullYear(),
       initialOdometer: Math.max(0, Math.round(car.startOdometer ?? 0)),
+      ...(car.tankCapacity && car.tankCapacity > 0 && car.tankCapacity <= 1000 ? { tankCapacity: car.tankCapacity } : {}),
       fillUps: [], costs: [], skipped: 0,
     };
     byKey.set(`${car.source}|${car.pk}`, v);
@@ -101,7 +102,10 @@ export async function readSpotrebaBackup(file: File): Promise<BackupResult> {
       const res = db.exec(sql)[0];
       return res ? res.values : [];
     };
-    const cars = rows("SELECT Z_SOURCE, Z_PK, ZNAME, Z_YEAR, Z_FUEL, ZSTARTODOMETER FROM Cars").map((r) => ({
+    const carColumns = new Set((db.exec("PRAGMA table_info(Cars)")[0]?.values ?? []).map((r) => String(r[1])));
+    const capColumn = carColumns.has("Z_GAS_TANK") ? "Z_GAS_TANK" : "NULL";
+    const cars = rows(`SELECT Z_SOURCE, Z_PK, ZNAME, Z_YEAR, Z_FUEL, ZSTARTODOMETER, ${capColumn} FROM Cars`).map((r) => ({
+      tankCapacity: r[6] == null ? null : Number(r[6]),
       source: Number(r[0]), pk: Number(r[1]), name: String(r[2] ?? ""), year: r[3] == null ? null : Number(r[3]),
       fuel: r[4] == null ? null : String(r[4]), startOdometer: r[5] == null ? null : Number(r[5]),
     }));

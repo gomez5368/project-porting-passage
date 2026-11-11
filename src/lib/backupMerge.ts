@@ -33,6 +33,10 @@ export function mergeImport(
     );
     const target = existing ?? { ...item.vehicle, id: makeId() };
     if (!existing) vehicles.push(target);
+    else if (existing.tankCapacity === undefined && item.vehicle.tankCapacity !== undefined) {
+      const i = vehicles.indexOf(existing);
+      vehicles[i] = { ...existing, tankCapacity: item.vehicle.tankCapacity };
+    }
 
     // Index of this vehicle's saved fill-ups by key, so a match can be updated in place.
     const indexByKey = new Map<string, number>();
