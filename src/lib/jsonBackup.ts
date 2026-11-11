@@ -51,3 +51,16 @@ export function replaceFillUp(state: AppState, fillUpId: string, changes: Omit<F
 export function replaceCost(state: AppState, costId: string, changes: Pick<Cost, "date" | "amount" | "category" | "note">): AppState {
   return { ...state, costs: state.costs.map((c) => c.id === costId ? { ...c, ...changes, id: c.id, vehicleId: c.vehicleId } : c) };
 }
+
+/** Removes a vehicle together with all its fill-ups and costs, so no orphaned records remain. */
+export function removeVehicle(state: AppState, vehicleId: string): AppState {
+  const vehicles = state.vehicles.filter((v) => v.id !== vehicleId);
+  const selectedVehicleId = state.selectedVehicleId === vehicleId ? (vehicles[0]?.id ?? null) : state.selectedVehicleId;
+  return {
+    ...state,
+    vehicles,
+    fillUps: state.fillUps.filter((f) => f.vehicleId !== vehicleId),
+    costs: state.costs.filter((c) => c.vehicleId !== vehicleId),
+    selectedVehicleId,
+  };
+}

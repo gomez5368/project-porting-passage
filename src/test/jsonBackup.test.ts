@@ -70,3 +70,22 @@ describe("cost editing", () => {
     expect(r.costs.reduce((t, c) => t + c.amount, 0)).toBe(55.5);
   });
 });
+import { removeVehicle as _removeVehicle } from "@/lib/jsonBackup";
+describe("vehicle deletion", () => {
+  const s = {
+    vehicles: [{ id: "a", brand: "Škoda", model: "Fabia", year: 2010, initialOdometer: 0 }, { id: "b", brand: "Škoda", model: "Rapid", year: 2015, initialOdometer: 0 }],
+    fillUps: [{ id: "f1", vehicleId: "a", date: "2025-01-01", odometer: 100, liters: 30, pricePerLiter: 1.6, totalPrice: 48, isFullTank: true }, { id: "f2", vehicleId: "b", date: "2025-01-01", odometer: 100, liters: 30, pricePerLiter: 1.6, totalPrice: 48, isFullTank: true }],
+    costs: [{ id: "c1", vehicleId: "a", date: "2025-01-01", amount: 20, category: "STK", note: "" }, { id: "c2", vehicleId: "b", date: "2025-01-01", amount: 30, category: "STK", note: "" }],
+    selectedVehicleId: "a",
+  };
+  it("removes the vehicle with its fill-ups and costs and selects another car", () => {
+    const r = _removeVehicle(s as never, "a");
+    expect(r.vehicles.map((v) => v.id)).toEqual(["b"]);
+    expect(r.fillUps.map((f) => f.id)).toEqual(["f2"]);
+    expect(r.costs.map((c) => c.id)).toEqual(["c2"]);
+    expect(r.selectedVehicleId).toBe("b");
+  });
+  it("keeps the selection when another car is deleted", () => {
+    expect(_removeVehicle(s as never, "b").selectedVehicleId).toBe("a");
+  });
+});
