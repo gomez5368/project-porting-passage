@@ -21,6 +21,7 @@ function Overview() {
   const { vehicles, selectedVehicle, selectedFillUps, selectedCosts, selectVehicle } = useCarData();
   const otherCosts = selectedCosts.reduce((s, c) => s + c.amount, 0);
   const summary = selectedVehicle ? summarizeVehicle(selectedVehicle, selectedFillUps) : null;
+  const lastSegment = summary?.segments.at(-1) ?? null;
   return (
     <>
       <ScreenHeader title="Prehľad" subtitle={selectedVehicle ? `${selectedVehicle.brand} ${selectedVehicle.model}` : "Štatistiky vášho auta"} />
@@ -34,6 +35,8 @@ function Overview() {
             <StatCard label="Najazdené km" value={formatNumber(summary.totalKm)} unit="km" tone="success" />
             <StatCard label="Ostatné náklady" value={formatNumber(otherCosts, 2)} unit="€" tone="warning" />
             <StatCard label="Celkom za auto" value={formatNumber(summary.totalCost + otherCosts, 2)} unit="€" tone="primary" />
+            <StatCard label="Posledná spotreba" value={lastSegment ? formatNumber(lastSegment.consumption, 1) : "—"} unit="l/100 km" tone="success" />
+            <StatCard label="Celková cena za 1 km" value={summary.totalKm > 0 ? formatNumber((summary.totalCost + otherCosts) / summary.totalKm, 3) : "—"} unit="€/km" tone="secondary" />
           </div>
           {summary.averageConsumption === null ? (
             <p className="mt-3 text-sm text-muted-foreground">Priemerná spotreba sa zobrazí po dvoch tankovaniach do plnej nádrže.</p>
