@@ -6,3 +6,4 @@
 - [x] CSV export histórie tankovaní
 - [x] Percentá nádrže pri vytvorení a úprave tankovania, zachovanie v zálohách
 - [x] Overenie výpočtu spotreby a uloženia v prehliadači
+- [x] Filter tankovaní podľa roku a postupné zobrazovanie v Histórii
