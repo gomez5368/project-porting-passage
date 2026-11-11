@@ -69,3 +69,16 @@ describe("db3 tank percentage import", () => {
     expect(twice.stats[0]?.percentsFilled).toBe(0);
   });
 });
+
+describe("vehicle tank capacity", () => {
+  it("reads tank capacity from the db3 car row", async () => {
+    const { convertBackup } = await import("@/lib/spotrebaBackup");
+    const r = convertBackup([{ source: 1, pk: 1, name: "ŠKODA Fabia", year: 2010, fuel: null, startOdometer: 0, tankCapacity: 45 }], []);
+    expect(r.vehicles[0]?.tankCapacity).toBe(45);
+  });
+  it("rejects capacity above 1000 l in JSON backups", async () => {
+    const { parseJsonBackup } = await import("@/lib/jsonBackup");
+    const bad = { vehicles: [{ id: "v", brand: "A", model: "B", year: 2010, initialOdometer: 0, tankCapacity: 1500 }], fillUps: [], costs: [], selectedVehicleId: "v" };
+    expect(() => parseJsonBackup(JSON.stringify(bad))).toThrow();
+  });
+});
