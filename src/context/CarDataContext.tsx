@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type Context, type ReactNode } from 'react';
 import { createId, loadAppState, saveAppState } from '@/lib/storage';
 import { mergeImport } from '@/lib/backupMerge';
 import { replaceCost, replaceFillUp, validateBackup } from '@/lib/jsonBackup';
@@ -27,7 +27,10 @@ type CarDataContextValue = AppState & {
   importVehicles: (items: { vehicle: NewVehicle; fillUps: Omit<FillUp, 'id' | 'vehicleId'>[]; costs?: NewCost[] }[]) => void;
 };
 
-const CarDataContext = createContext<CarDataContextValue | null>(null);
+// Kept on globalThis so a hot reload of this module reuses the same context object
+// instead of orphaning consumers from the already-mounted provider.
+const contextStore = globalThis as typeof globalThis & { __carDataContext?: Context<CarDataContextValue | null> };
+const CarDataContext = (contextStore.__carDataContext ??= createContext<CarDataContextValue | null>(null));
 
 export function CarDataProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<AppState>({ vehicles: [], fillUps: [], costs: [], selectedVehicleId: null });
