@@ -17,6 +17,12 @@ const stateSchema = z.object({
   costs: z.array(z.object({
     id, vehicleId: id, date, amount: nonNegative, category: z.string().min(1), note: z.string(), odometer: nonNegative.nullable(),
   })).default([]),
+  reminders: z.array(z.object({
+    vehicleId: id,
+    deadlines: z.object({ stk: date.optional(), ek: date.optional(), pzp: date.optional(), havarijne: date.optional(), dialnicna: date.optional() }),
+    oilLastOdometer: nonNegative.optional(),
+    oilIntervalKm: z.number().finite().positive().max(1_000_000),
+  })).optional(),
   selectedVehicleId: id.nullable(),
 }).superRefine((state, ctx) => {
   const vehicleIds = new Set(state.vehicles.map((v) => v.id));
@@ -28,7 +34,11 @@ const stateSchema = z.object({
   if (state.selectedVehicleId !== null && !vehicleIds.has(state.selectedVehicleId)) {
     ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Neznáme vybrané vozidlo." });
   }
-  if ([...state.fillUps, ...state.costs].some((item) => !vehicleIds.has(item.vehicleId))) {
+  const reminderIds = (state.reminders ?? []).map((r) => r.vehicleId);
+  if (new Set(reminderIds).size !== reminderIds.length) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Duplicitné termíny vozidla." });
+  }
+  if ([...state.fillUps, ...state.costs, ...(state.reminders ?? [])].some((item) => !vehicleIds.has(item.vehicleId))) {
     ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Záznam bez vozidla." });
   }
 });
@@ -61,6 +71,7 @@ export function removeVehicle(state: AppState, vehicleId: string): AppState {
     vehicles,
     fillUps: state.fillUps.filter((f) => f.vehicleId !== vehicleId),
     costs: state.costs.filter((c) => c.vehicleId !== vehicleId),
+    ...(state.reminders ? { reminders: state.reminders.filter((r) => r.vehicleId !== vehicleId) } : {}),
     selectedVehicleId,
   };
 }

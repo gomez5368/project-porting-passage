@@ -57,6 +57,7 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
   --color-warning: var(--warning);
+  --color-caution: var(--caution);
   --color-success: var(--success);
   --font-sans: "Manrope", ui-sans-serif, system-ui, sans-serif;
   --font-display: "Space Grotesk", ui-sans-serif, sans-serif;
@@ -93,6 +94,7 @@
   --accent: oklch(0.79 0.15 163 / 14%);
   --accent-foreground: oklch(0.79 0.15 163);
   --warning: oklch(0.84 0.16 84);
+  --caution: oklch(0.76 0.17 55);
   --success: oklch(0.8 0.18 150);
   --destructive: oklch(0.71 0.17 22);
   --destructive-foreground: oklch(0.97 0.007 250);

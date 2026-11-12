@@ -12,7 +12,7 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
-import { Car, Fuel, History, LayoutDashboard, Wallet } from "lucide-react";
+import { CalendarClock, Car, Fuel, History, LayoutDashboard, Wallet } from "lucide-react";
 import { CarDataProvider } from "@/context/CarDataContext";
 
 const TABS = [
@@ -20,6 +20,7 @@ const TABS = [
   { to: "/tankovanie", label: "Tankovanie", icon: Fuel },
   { to: "/historia", label: "História", icon: History },
   { to: "/naklady", label: "Náklady", icon: Wallet },
+  { to: "/terminy", label: "Termíny", icon: CalendarClock },
   { to: "/vozidla", label: "Vozidlá", icon: Car },
 ] as const;
 
@@ -148,11 +149,11 @@ function RootComponent() {
           <Outlet />
         </main>
         <nav className="fixed inset-x-0 bottom-0 border-t border-border bg-card/95 backdrop-blur">
-          <ul className="mx-auto grid max-w-2xl grid-cols-5">
+          <ul className="mx-auto grid max-w-2xl grid-cols-6">
             {TABS.map(({ to, label, icon: Icon }) => (
               <li key={to}>
                 <Link to={to} activeOptions={{ exact: true }}
-                  className="flex flex-col items-center gap-1 py-3 text-xs font-semibold text-muted-foreground transition-colors hover:text-foreground"
+                  className="flex flex-col items-center gap-1 py-3 text-[10px] font-semibold sm:text-xs text-muted-foreground transition-colors hover:text-foreground"
                   activeProps={{ className: "text-primary hover:text-primary" }}>
                   <Icon className="size-5" />
                   {label}

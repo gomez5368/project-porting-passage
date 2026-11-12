@@ -2,7 +2,8 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import { createId, loadAppState, saveAppState } from '@/lib/storage';
 import { mergeImport } from '@/lib/backupMerge';
 import { removeVehicle, replaceCost, replaceFillUp, validateBackup } from '@/lib/jsonBackup';
-import type { AppState, Cost, FillUp, Vehicle } from '@/types/fuel';
+import { upsertReminders } from '@/lib/reminders';
+import type { AppState, Cost, FillUp, Vehicle, VehicleReminders } from '@/types/fuel';
 
 type NewVehicle = Omit<Vehicle, 'id'>;
 type NewFillUp = Omit<FillUp, 'id'>;
@@ -25,6 +26,7 @@ type CarDataContextValue = AppState & {
   deleteFillUp: (fillUpId: string) => void;
   updateFillUp: (fillUpId: string, changes: Omit<FillUp, 'id' | 'vehicleId'>) => void;
   restoreData: (data: AppState) => void;
+  saveReminders: (reminders: VehicleReminders) => void;
   importVehicles: (items: { vehicle: NewVehicle; fillUps: Omit<FillUp, 'id' | 'vehicleId'>[]; costs?: NewCost[] }[]) => void;
 };
 
@@ -97,6 +99,10 @@ export function CarDataProvider({ children }: { children: ReactNode }) {
     setState((prev) => replaceFillUp(prev, fillUpId, changes));
   }, []);
 
+  const saveReminders = useCallback((reminders: VehicleReminders) => {
+    setState((prev) => upsertReminders(prev, reminders));
+  }, []);
+
   const restoreData = useCallback((data: AppState) => {
     const restored = validateBackup(data);
     saveAppState(restored);
@@ -128,8 +134,9 @@ export function CarDataProvider({ children }: { children: ReactNode }) {
       updateFillUp,
       restoreData,
       importVehicles,
+      saveReminders,
     };
-  }, [state, isReady, addVehicle, selectVehicle, updateVehicle, deleteVehicle, addFillUps, deleteFillUp, updateFillUp, restoreData, importVehicles, addCost, deleteCost, updateCost]);
+  }, [state, isReady, saveReminders, addVehicle, selectVehicle, updateVehicle, deleteVehicle, addFillUps, deleteFillUp, updateFillUp, restoreData, importVehicles, addCost, deleteCost, updateCost]);
 
   return <CarDataContext.Provider value={value}>{children}</CarDataContext.Provider>;
 }

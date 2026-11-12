@@ -1,7 +1,11 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { Link, createFileRoute } from "@tanstack/react-router";
+import { BellRing, ChevronRight } from "lucide-react";
 import { EmptyVehicleState, ScreenHeader, StatCard, TrendChart, VehicleSwitcher } from "@/components/app/ui";
 import { useCarData } from "@/context/CarDataContext";
 import { formatNumber, formatShortDate, sortFillUps, summarizeVehicle } from "@/lib/fuelCalculations";
+import { currentOdometer, reminderAlerts, remindersFor, todayIso, type ReminderAlert } from "@/lib/reminders";
+import { statusCard, statusText } from "@/components/app/reminderTone";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -18,16 +22,20 @@ export const Route = createFileRoute("/")({
 });
 
 function Overview() {
-  const { vehicles, selectedVehicle, selectedFillUps, selectedCosts, selectVehicle } = useCarData();
+  const { vehicles, reminders, selectedVehicle, selectedFillUps, selectedCosts, selectVehicle } = useCarData();
   const otherCosts = selectedCosts.reduce((s, c) => s + c.amount, 0);
   const summary = selectedVehicle ? summarizeVehicle(selectedVehicle, selectedFillUps) : null;
   const lastSegment = summary?.segments.at(-1) ?? null;
+  const alerts = selectedVehicle
+    ? reminderAlerts(remindersFor({ reminders }, selectedVehicle.id), currentOdometer(selectedVehicle, selectedFillUps), todayIso())
+    : [];
   return (
     <>
       <ScreenHeader title="Prehľad" subtitle={selectedVehicle ? `${selectedVehicle.brand} ${selectedVehicle.model}` : "Štatistiky vášho auta"} />
       {selectedVehicle && summary ? (
         <>
           <VehicleSwitcher vehicles={vehicles} selectedId={selectedVehicle.id} onSelect={selectVehicle} />
+          {alerts.length > 0 ? <ReminderBanner alerts={alerts} /> : null}
           <div className="grid grid-cols-2 gap-3">
             <StatCard label="Priemerná spotreba" value={summary.averageConsumption !== null ? formatNumber(summary.averageConsumption, 1) : "—"} unit="l/100 km" tone="primary" />
             <StatCard label="Náklady na palivo" value={formatNumber(summary.totalCost, 2)} unit="€" tone="secondary" />
@@ -54,5 +62,24 @@ function Overview() {
         <EmptyVehicleState />
       )}
     </>
+  );
+}
+
+function ReminderBanner({ alerts }: { alerts: ReminderAlert[] }) {
+  const tone = alerts.some((a) => a.status === "overdue") ? "overdue" : "soon";
+  return (
+    <Link to="/terminy" data-testid="reminder-banner"
+      className={cn("mb-4 flex items-center gap-3 rounded-xl border px-4 py-3 text-sm transition-colors hover:bg-card", statusCard[tone])}>
+      <BellRing className={cn("size-5 shrink-0", statusText[tone])} />
+      <span className="min-w-0 flex-1">
+        <span className="font-semibold">{tone === "overdue" ? "Treba vybaviť" : "Blíži sa termín"}: </span>
+        {alerts.map((a, i) => (
+          <span key={a.key}>
+            {i > 0 ? " · " : ""}{a.label} <span className={cn("font-semibold", statusText[a.status])}>({a.text})</span>
+          </span>
+        ))}
+      </span>
+      <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
+    </Link>
   );
 }

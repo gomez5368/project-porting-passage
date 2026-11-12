@@ -7,3 +7,4 @@
 - [x] Percentá nádrže pri vytvorení a úprave tankovania, zachovanie v zálohách
 - [x] Overenie výpočtu spotreby a uloženia v prehliadači
 - [x] Filter tankovaní podľa roku a postupné zobrazovanie v Histórii
+- [x] Termíny a servis (STK, EK, PZP, havarijné, diaľničná známka, výmena oleja) + upozornenie na Prehľade + JSON záloha

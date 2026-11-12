@@ -20,6 +20,7 @@ export function loadAppState(): AppState {
       vehicles: Array.isArray(parsed.vehicles) ? parsed.vehicles : [],
       fillUps: Array.isArray(parsed.fillUps) ? parsed.fillUps : [],
       costs: Array.isArray(parsed.costs) ? parsed.costs : [],
+      reminders: Array.isArray(parsed.reminders) ? parsed.reminders : [],
       selectedVehicleId: typeof parsed.selectedVehicleId === 'string' ? parsed.selectedVehicleId : null,
     };
   } catch {

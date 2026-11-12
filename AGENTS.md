@@ -34,3 +34,4 @@ use the editor.
 - Fill-up creation and editing share one form; updates preserve record and vehicle IDs so derived statistics automatically follow the current history.
 - Optional post-fill tank percentages override the legacy full-tank flag in calculations and exports; legacy records without percentages retain their original meaning.
 - App source lives only in src/ (TanStack Start); old Bolt/Expo or Next.js files uploaded to the repo root are not part of the app and break package.json/tsconfig, so they must not be merged in.
+- Per-vehicle deadlines and oil-change settings are an optional reminders list on the app state (one entry per vehicle); status thresholds live in one browser-safe module so the page, overview banner and tests share them.

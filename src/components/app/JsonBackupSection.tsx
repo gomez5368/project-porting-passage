@@ -9,7 +9,7 @@ import { parseJsonBackup, serializeJsonBackup } from "@/lib/jsonBackup";
 import type { AppState } from "@/types/fuel";
 
 export function JsonBackupSection() {
-  const { vehicles, fillUps, costs, selectedVehicleId, isReady, restoreData } = useCarData();
+  const { vehicles, fillUps, costs, reminders, selectedVehicleId, isReady, restoreData } = useCarData();
   const input = useRef<HTMLInputElement>(null);
   const [pending, setPending] = useState<AppState | null>(null);
   const [lastImported, setLastImported] = useState<AppState | null>(null);
@@ -20,7 +20,7 @@ export function JsonBackupSection() {
   const exportData = () => {
     setError(null); setMessage(null); setLastImported(null);
     try {
-      const json = serializeJsonBackup({ vehicles, fillUps, costs, selectedVehicleId });
+      const json = serializeJsonBackup({ vehicles, fillUps, costs, reminders: reminders ?? [], selectedVehicleId });
       downloadFile(new Blob([json], { type: "application/json;charset=utf-8" }), "spotreba_zaloha.json");
     } catch {
       setError("Zálohu sa nepodarilo vytvoriť. Údaje zostali nezmenené.");

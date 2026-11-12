@@ -74,7 +74,7 @@ export function mergeImport(
   }
 
   return {
-    state: { vehicles, fillUps, costs, selectedVehicleId: prev.selectedVehicleId ?? vehicles[0]?.id ?? null },
+    state: { ...prev, vehicles, fillUps, costs, selectedVehicleId: prev.selectedVehicleId ?? vehicles[0]?.id ?? null },
     stats,
   };
 }
