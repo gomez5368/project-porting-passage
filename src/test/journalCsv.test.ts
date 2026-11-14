@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { serializeJournalCsv } from "@/lib/journalCsv";
+import { journalCsvFileName, serializeJournalCsv } from "@/lib/journalCsv";
 import type { Cost, FillUp, Vehicle } from "@/types/fuel";
 
 const vehicle: Vehicle = { id: "v", brand: "Škoda", model: "Fabia", year: 2018, initialOdometer: 100000 };
@@ -50,5 +50,42 @@ describe("serializeJournalCsv", () => {
     });
     const dates = filtered.trimEnd().split("\r\n").slice(1).map((line) => line.slice(0, 10));
     expect(dates).toEqual(["2025-03-02", "2025-03-03"]);
+  });
+
+  it("exports fuel only when content is fuel", () => {
+    const filtered = serializeJournalCsv([fillUp], [cost, costNoKm], [vehicle], { content: "fuel" });
+    const lines = filtered.trimEnd().split("\r\n");
+    expect(lines.slice(1)).toEqual(["2025-03-02;Škoda Fabia;Palivo;Premium;145000;40,50;78;60,75;"]);
+    expect(filtered).not.toContain("Údržba");
+    expect(filtered).not.toContain("Parkovanie");
+  });
+
+  it("exports other costs only when content is costs", () => {
+    const filtered = serializeJournalCsv([fillUp], [cost, costNoKm], [vehicle], { content: "costs" });
+    const lines = filtered.trimEnd().split("\r\n");
+    expect(lines.slice(1)).toEqual([
+      '2025-03-01;Škoda Fabia;Údržba;;144800;;;1950,84;"Kontrola; brzdy"',
+      "2025-03-03;Škoda Fabia;Parkovanie;;;;;12,00;",
+    ]);
+    expect(filtered).not.toContain("Palivo");
+  });
+
+  it("combines the content choice with the vehicle and date filters", () => {
+    const rapid: Vehicle = { ...vehicle, id: "other", brand: "Škoda", model: "Rapid" };
+    const filtered = serializeJournalCsv(
+      [fillUp, { ...fillUp, id: "other-fill", vehicleId: "other", date: "2025-03-05" }],
+      [cost, { ...cost, id: "other-cost", vehicleId: "other" }],
+      [vehicle, rapid],
+      { content: "fuel", vehicleId: "other" },
+    );
+    expect(filtered.trimEnd().split("\r\n").slice(1)).toEqual([
+      "2025-03-05;Škoda Rapid;Palivo;Premium;145000;40,50;78;60,75;",
+    ]);
+  });
+
+  it("names the downloaded file after the chosen content", () => {
+    expect(journalCsvFileName("all")).toBe("spotreba_export.csv");
+    expect(journalCsvFileName("fuel")).toBe("spotreba_palivo.csv");
+    expect(journalCsvFileName("costs")).toBe("spotreba_naklady.csv");
   });
 });

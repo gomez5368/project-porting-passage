@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { DatabaseBackup, Download, FileSpreadsheet, Upload } from "lucide-react";
 import { BackupSummaryCard } from "@/components/app/BackupSummaryCard";
+import { SegmentedControl } from "@/components/app/ui";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -9,7 +10,7 @@ import { useCarData } from "@/context/CarDataContext";
 import { downloadFile } from "@/lib/downloadFile";
 import { LAST_BACKUP_KEY } from "@/lib/backupReminder";
 import { parseJsonBackup, serializeJsonBackup } from "@/lib/jsonBackup";
-import { serializeJournalCsv } from "@/lib/journalCsv";
+import { JOURNAL_CSV_CONTENTS, journalCsvFileName, serializeJournalCsv, type JournalCsvContent } from "@/lib/journalCsv";
 import type { AppState } from "@/types/fuel";
 
 export function JsonBackupSection() {
@@ -23,6 +24,7 @@ export function JsonBackupSection() {
   const [csvVehicleId, setCsvVehicleId] = useState("all");
   const [csvDateFrom, setCsvDateFrom] = useState("");
   const [csvDateTo, setCsvDateTo] = useState("");
+  const [csvContent, setCsvContent] = useState<JournalCsvContent>("all");
 
   const exportData = () => {
     setError(null); setMessage(null); setLastImported(null);
@@ -44,19 +46,23 @@ export function JsonBackupSection() {
       vehicleId: csvVehicleId === "all" ? undefined : csvVehicleId,
       dateFrom: csvDateFrom || undefined,
       dateTo: csvDateTo || undefined,
+      content: csvContent,
     };
-    const recordCount = [...fillUps, ...costs].filter((record) =>
-      (!filter.vehicleId || record.vehicleId === filter.vehicleId) &&
-      (!filter.dateFrom || record.date >= filter.dateFrom) &&
-      (!filter.dateTo || record.date <= filter.dateTo),
-    ).length;
+    const included =
+      (record: { vehicleId: string; date: string }) =>
+        (!filter.vehicleId || record.vehicleId === filter.vehicleId) &&
+        (!filter.dateFrom || record.date >= filter.dateFrom) &&
+        (!filter.dateTo || record.date <= filter.dateTo);
+    const fuelCount = csvContent === "costs" ? 0 : fillUps.filter(included).length;
+    const costCount = csvContent === "fuel" ? 0 : costs.filter(included).length;
+    const recordCount = fuelCount + costCount;
     if (recordCount === 0) {
-      setError("Pre zvolené vozidlo a obdobie nie sú žiadne záznamy.");
+      setError("Pre zvolený obsah, vozidlo a obdobie nie sú žiadne záznamy.");
       return;
     }
     try {
       const csv = serializeJournalCsv(fillUps, costs, vehicles, filter);
-      downloadFile(new Blob([csv], { type: "text/csv;charset=utf-8" }), "spotreba_export.csv");
+      downloadFile(new Blob([csv], { type: "text/csv;charset=utf-8" }), journalCsvFileName(csvContent));
       setMessage(`Počet exportovaných záznamov: ${recordCount}.`);
     } catch {
       setError("Export do CSV sa nepodaril. Údaje zostali nezmenené.");
@@ -103,7 +109,16 @@ export function JsonBackupSection() {
       </div>
       <div className="mt-5 border-t border-border/60 pt-5">
         <h3 className="font-semibold">Export do Excelu (CSV)</h3>
-        <p className="mt-1 text-sm text-muted-foreground">Vyberte vozidlo a obdobie. Prázdne dátumy znamenajú celú históriu.</p>
+        <p className="mt-1 text-sm text-muted-foreground">Vyberte, čo sa má exportovať, vozidlo a obdobie. Prázdne dátumy znamenajú celú históriu.</p>
+        <div className="mt-4 space-y-2">
+          <Label>Obsah exportu</Label>
+          <SegmentedControl
+            options={JOURNAL_CSV_CONTENTS}
+            value={csvContent}
+            onChange={setCsvContent}
+            labels={{ all: "Všetko", fuel: "Len palivo", costs: "Len ostatné náklady" }}
+          />
+        </div>
         <div className="mt-4 grid gap-3 sm:grid-cols-3">
           <div className="space-y-2">
             <Label htmlFor="csv-vehicle">Vozidlo</Label>
