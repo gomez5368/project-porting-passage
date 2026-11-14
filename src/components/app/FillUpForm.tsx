@@ -21,7 +21,7 @@ function isValidIsoDate(v: string) {
   return dt.getFullYear() === y && dt.getMonth() === m - 1 && dt.getDate() === d;
 }
 
-export function FillUpForm({ latestOdometer, vehicleFuelType, initialFillUp, onSubmit }: { latestOdometer: number; vehicleFuelType: VehicleFuelType; initialFillUp?: FillUp; onSubmit: (i: Omit<FillUp, "id" | "vehicleId">) => void }) {
+export function FillUpForm({ latestOdometer, vehicleFuelType, initialFillUp, onSubmit, estimate }: { estimate?: (odometer: number, liters: number) => number | null; latestOdometer: number; vehicleFuelType: VehicleFuelType; initialFillUp?: FillUp; onSubmit: (i: Omit<FillUp, "id" | "vehicleId">) => void }) {
   const [date, setDate] = useState(() => initialFillUp?.date ?? todayIso());
   const [odometer, setOdometer] = useState(() => initialFillUp ? String(initialFillUp.odometer) : "");
   const [liters, setLiters] = useState(() => initialFillUp ? String(initialFillUp.liters) : "");
@@ -40,6 +40,8 @@ export function FillUpForm({ latestOdometer, vehicleFuelType, initialFillUp, onS
   const okP = Number.isFinite(p) && p > 0;
   const total = okL && okP ? (priceMode === "total" ? p : p * l) : null;
   const perL = okL && okP ? (priceMode === "perLiter" ? p : p / l) : null;
+
+  const estimated = estimate && okL ? estimate(parseDecimal(odometer), l) : null;
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -106,6 +108,12 @@ export function FillUpForm({ latestOdometer, vehicleFuelType, initialFillUp, onS
           setTankLevel(value);
           setFull(parseDecimal(value) === 100 ? "yes" : "no");
         }} inputMode="decimal" placeholder="napr. 75" suffix="%" error={errors.tankLevel} />
+        {estimated !== null && String(estimated) !== tankLevel.trim() ? (
+          <button type="button" className="text-sm font-semibold text-primary hover:underline"
+            onClick={() => { setTankLevel(String(estimated)); setFull(estimated === 100 ? "yes" : "no"); }}>
+            Odhad podľa objemu nádrže: {estimated} % – použiť
+          </button>
+        ) : null}
         <p className="text-sm text-muted-foreground">Spotreba sa počíta len medzi dvoma tankovaniami do plnej nádrže.</p>
       </div>
       {saved ? <p className="font-semibold text-success">{saved}</p> : null}

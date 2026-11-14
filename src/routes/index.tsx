@@ -6,6 +6,9 @@ import { formatNumber, summarizeVehicle } from "@/lib/fuelCalculations";
 import { currentOdometer, reminderAlerts, remindersFor, todayIso, type ReminderAlert } from "@/lib/reminders";
 import { statusCard, statusText } from "@/components/app/reminderTone";
 import { cn } from "@/lib/utils";
+import { useEffect, useState } from "react";
+import { DatabaseBackup } from "lucide-react";
+import { LAST_BACKUP_KEY, daysSince, needsBackupReminder } from "@/lib/backupReminder";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -53,6 +56,7 @@ function Overview() {
       <ScreenHeader title="Prehľad" subtitle={selectedVehicle ? `${selectedVehicle.brand} ${selectedVehicle.model}` : "Všetko o vašom aute na jednom mieste"} />
       {selectedVehicle ? <VehicleSwitcher vehicles={vehicles} selectedId={selectedVehicle.id} onSelect={selectVehicle} /> : null}
       {alerts.length > 0 ? <ReminderBanner alerts={alerts} /> : null}
+      <BackupBanner hasData={vehicles.length > 0} />
 
       <nav aria-label="Hlavné menu" className="mb-6 grid grid-cols-2 gap-3">
         <HomeTile to="/tankovanie" label="Nové tankovanie" icon={Fuel} />
@@ -93,6 +97,22 @@ function ReminderBanner({ alerts }: { alerts: ReminderAlert[] }) {
           </span>
         ))}
       </span>
+      <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
+    </Link>
+  );
+}
+
+function BackupBanner({ hasData }: { hasData: boolean }) {
+  const [last, setLast] = useState<string | null | undefined>(undefined);
+  useEffect(() => { try { setLast(localStorage.getItem(LAST_BACKUP_KEY)); } catch { setLast(null); } }, []);
+  if (last === undefined || !needsBackupReminder(last, new Date(), hasData)) return null;
+  const d = daysSince(last, new Date());
+  return (
+    <Link to="/historia" data-testid="backup-banner"
+      className="mb-4 flex items-center gap-3 rounded-xl border border-border px-4 py-3 text-sm transition-colors hover:bg-card">
+      <DatabaseBackup className="size-5 shrink-0 text-primary" />
+      <span className="min-w-0 flex-1"><span className="font-semibold">Zálohujte si dáta: </span>
+        {d === null ? "zatiaľ ste nevytvorili žiadnu zálohu." : `posledná záloha pred ${d} dňami.`}</span>
       <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
     </Link>
   );

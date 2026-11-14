@@ -15,6 +15,8 @@ import { EmptyVehicleState, HistoryCostsNav, ImportSpotrebaCard, ScreenHeader, V
 import { useCarData } from "@/context/CarDataContext";
 import { buildConsumptionSegments } from "@/lib/fuelCalculations";
 import { vehicleFuelType } from "@/lib/fuelTypes";
+import { estimateTankLevel, previousFillUp } from "@/lib/tankEstimate";
+import { summarizeVehicle as summarize } from "@/lib/fuelCalculations";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/historia")({
@@ -53,7 +55,11 @@ function History() {
   const consumption = new Map(buildConsumptionSegments(selectedFillUps).map((s) => [s.fillUpId, s.consumption]));
   const newest = buildJournal(selectedFillUps, selectedCosts);
   const years = [...new Set(newest.map((f) => f.date.slice(0, 4)))].sort().reverse();
-  const filtered = year ? newest.filter((f) => f.date.startsWith(year)) : newest;
+  const [kind, setKind] = useState<"all" | "fuel" | "cost">("all");
+  const [query, setQuery] = useState("");
+  const q = query.trim().toLowerCase();
+  const filtered = newest.filter((e) => (!year || e.date.startsWith(year)) && (kind === "all" || e.kind === kind)
+    && (!q || (e.kind === "fuel" ? "palivo" : `${e.cost.category} ${e.cost.note}`).toLowerCase().includes(q)));
   const shown = filtered.slice(0, visible);
   const pickYear = (y: string | null) => { setYear(y); setVisible(PAGE); };
   return (
@@ -72,6 +78,11 @@ function History() {
               new Blob([serializeFillUpsCsv(selectedFillUps, vehicles)], { type: "text/csv;charset=utf-8" }), "tankovania.csv",
             )}><Download className="size-4" />Tankovania CSV</Button>
           </div>
+          <div className="mb-3 flex flex-wrap gap-2">
+            {(["all", "fuel", "cost"] as const).map((k) => <FilterChip key={k} label={{ all: "Všetko", fuel: "Palivo", cost: "Ostatné náklady" }[k]} active={kind === k} onClick={() => { setKind(k); setVisible(PAGE); }} />)}
+          </div>
+          <input type="search" value={query} onChange={(e) => { setQuery(e.target.value); setVisible(PAGE); }} placeholder="Hľadať v kategórii alebo poznámke…"
+            aria-label="Hľadať v denníku" className="mb-4 w-full rounded-lg border border-border bg-card px-3 py-2 text-sm" />
           {years.length > 1 ? (
             <div className="mb-4 flex flex-wrap gap-2">
               <FilterChip label="Všetky roky" active={year === null} onClick={() => pickYear(null)} />
@@ -79,7 +90,7 @@ function History() {
             </div>
           ) : null}
           {filtered.length === 0 ? (
-            <div className="panel text-muted-foreground">V tomto roku zatiaľ nie je žiadny záznam.</div>
+            <div className="panel text-muted-foreground">Tomuto filtru nezodpovedá žiadny záznam.</div>
           ) : (
             shown.map((e) => <JournalRow key={e.kind + e.id} entry={e} consumption={e.kind === "fuel" ? consumption.get(e.id) ?? null : null}
               confirming={confirmId === e.id} onConfirm={setConfirmId}
@@ -98,7 +109,7 @@ function History() {
       <Dialog open={editing !== null} onOpenChange={(open) => { if (!open) setEditing(null); }}>
         <DialogContent className="max-h-[90vh] overflow-y-auto">
           <DialogHeader><DialogTitle>Upraviť tankovanie</DialogTitle></DialogHeader>
-          {editing && selectedVehicle ? <FillUpForm key={editing.id} latestOdometer={0} vehicleFuelType={vehicleFuelType(selectedVehicle, selectedFillUps)} initialFillUp={editing} onSubmit={(changes) => {
+          {editing && selectedVehicle ? <FillUpForm key={editing.id} latestOdometer={0} vehicleFuelType={vehicleFuelType(selectedVehicle, selectedFillUps)} estimate={(o, l) => estimateTankLevel({ capacity: selectedVehicle.tankCapacity, previous: previousFillUp(selectedFillUps, o, editing.id), averageConsumption: summarize(selectedVehicle, selectedFillUps).averageConsumption, odometer: o, liters: l })} initialFillUp={editing} onSubmit={(changes) => {
             updateFillUp(editing.id, changes);
             setEditing(null);
           }} /> : null}

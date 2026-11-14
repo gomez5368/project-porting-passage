@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useCarData } from "@/context/CarDataContext";
 import { downloadFile } from "@/lib/downloadFile";
+import { LAST_BACKUP_KEY } from "@/lib/backupReminder";
 import { parseJsonBackup, serializeJsonBackup } from "@/lib/jsonBackup";
 import type { AppState } from "@/types/fuel";
 
@@ -22,6 +23,7 @@ export function JsonBackupSection() {
     try {
       const json = serializeJsonBackup({ vehicles, fillUps, costs, reminders: reminders ?? [], selectedVehicleId });
       downloadFile(new Blob([json], { type: "application/json;charset=utf-8" }), "spotreba_zaloha.json");
+      try { localStorage.setItem(LAST_BACKUP_KEY, new Date().toISOString()); } catch { /* ignore */ }
     } catch {
       setError("Zálohu sa nepodarilo vytvoriť. Údaje zostali nezmenené.");
     }

@@ -4,6 +4,8 @@ import { EmptyVehicleState, ScreenHeader, VehicleSwitcher } from "@/components/a
 import { useCarData } from "@/context/CarDataContext";
 import { getLatestOdometer } from "@/lib/fuelCalculations";
 import { vehicleFuelType } from "@/lib/fuelTypes";
+import { estimateTankLevel, previousFillUp } from "@/lib/tankEstimate";
+import { summarizeVehicle } from "@/lib/fuelCalculations";
 
 export const Route = createFileRoute("/tankovanie")({
   head: () => ({
@@ -28,7 +30,7 @@ function Refuel() {
         <>
           <VehicleSwitcher vehicles={vehicles} selectedId={selectedVehicle.id} onSelect={selectVehicle} />
           <FillUpForm key={selectedVehicle.id} latestOdometer={getLatestOdometer(selectedVehicle, selectedFillUps)}
-            vehicleFuelType={vehicleFuelType(selectedVehicle, selectedFillUps)}
+            vehicleFuelType={vehicleFuelType(selectedVehicle, selectedFillUps)} estimate={(o, l) => estimateTankLevel({ capacity: selectedVehicle.tankCapacity, previous: previousFillUp(selectedFillUps, o), averageConsumption: summarizeVehicle(selectedVehicle, selectedFillUps).averageConsumption, odometer: o, liters: l })}
             onSubmit={(i) => addFillUps([{ ...i, vehicleId: selectedVehicle.id }])} />
         </>
       ) : (

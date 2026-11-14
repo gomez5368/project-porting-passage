@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { EmptyVehicleState, ScreenHeader, StatCard, TrendChart, VehicleSwitcher } from "@/components/app/ui";
 import { useCarData } from "@/context/CarDataContext";
+import { monthlyTotals } from "@/lib/monthlyTotals";
 import { formatNumber, formatShortDate, sortFillUps, summarizeVehicle } from "@/lib/fuelCalculations";
 
 export const Route = createFileRoute("/statistiky")({
@@ -18,7 +19,10 @@ export const Route = createFileRoute("/statistiky")({
 });
 
 function Statistics() {
-  const { vehicles, selectedVehicle, selectedFillUps, selectedCosts, selectVehicle } = useCarData();
+  const { vehicles, fillUps, costs, selectedVehicle, selectedFillUps, selectedCosts, selectVehicle } = useCarData();
+  const months = monthlyTotals(selectedFillUps, selectedCosts);
+  const categories = Object.entries(selectedCosts.reduce<Record<string, number>>((a, c) => ({ ...a, [c.category]: (a[c.category] ?? 0) + c.amount }), {})).sort((a, b) => b[1] - a[1]);
+  const maxCat = categories[0]?.[1] ?? 0;
   const otherCosts = selectedCosts.reduce((sum, cost) => sum + cost.amount, 0);
   const summary = selectedVehicle ? summarizeVehicle(selectedVehicle, selectedFillUps) : null;
   const lastSegment = summary?.segments.at(-1) ?? null;
@@ -50,6 +54,44 @@ function Statistics() {
             points={sortFillUps(selectedFillUps).map((fillUp) => ({ label: formatShortDate(fillUp.date), value: fillUp.pricePerLiter }))}
             formatValue={(value) => `${formatNumber(value, 3)} €/l`}
             emptyText="Zatiaľ žiadne tankovania. Graf ceny sa zobrazí po prvom tankovaní." />
+          <TrendChart title="Náklady po mesiacoch (palivo + ostatné)" tone="primary"
+            points={months.map((m) => ({ label: `${m.month.slice(5)}/${m.month.slice(2, 4)}`, value: m.fuel + m.other }))}
+            formatValue={(value) => `${formatNumber(value, 0)} €`}
+            emptyText="Graf sa zobrazí po prvom zapísanom výdavku." />
+          {categories.length > 0 ? (
+            <section className="panel mt-4">
+              <h2 className="mb-3 font-semibold">Ostatné náklady podľa kategórií</h2>
+              {categories.map(([name, sum]) => (
+                <div key={name} className="mb-2">
+                  <div className="flex justify-between text-sm"><span>{name}</span><span className="tabular font-semibold">{formatNumber(sum, 2)} €</span></div>
+                  <div className="mt-1 h-2 rounded-full bg-muted"><div className="h-2 rounded-full bg-secondary" style={{ width: `${(sum / maxCat) * 100}%` }} /></div>
+                </div>
+              ))}
+            </section>
+          ) : null}
+          {vehicles.length > 1 ? (
+            <section className="panel mt-4 overflow-x-auto">
+              <h2 className="mb-3 font-semibold">Porovnanie áut</h2>
+              <table className="w-full text-sm">
+                <thead className="text-left text-muted-foreground"><tr><th className="py-1">Auto</th><th>l/100 km</th><th>Najazdené</th><th>€/km celkom</th></tr></thead>
+                <tbody>
+                  {vehicles.map((v) => {
+                    const vf = fillUps.filter((f) => f.vehicleId === v.id);
+                    const s = summarizeVehicle(v, vf);
+                    const other = costs.filter((c) => c.vehicleId === v.id).reduce((a, c) => a + c.amount, 0);
+                    return (
+                      <tr key={v.id} className="tabular border-t border-border">
+                        <td className="py-2 font-semibold">{v.brand} {v.model}</td>
+                        <td>{s.averageConsumption !== null ? formatNumber(s.averageConsumption, 1) : "—"}</td>
+                        <td>{formatNumber(s.totalKm)} km</td>
+                        <td>{s.totalKm > 0 ? formatNumber((s.totalCost + other) / s.totalKm, 3) : "—"}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </section>
+          ) : null}
         </>
       ) : <EmptyVehicleState />}
     </>

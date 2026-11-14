@@ -35,3 +35,4 @@ use the editor.
 - Optional post-fill tank percentages override the legacy full-tank flag in calculations and exports; legacy records without percentages retain their original meaning.
 - App source lives only in src/ (TanStack Start); old Bolt/Expo or Next.js files uploaded to the repo root are not part of the app and break package.json/tsconfig, so they must not be merged in.
 - Per-vehicle deadlines and oil-change settings are an optional reminders list on the app state (one entry per vehicle); status thresholds live in one browser-safe module so the page, overview banner and tests share them.
+- Offline mode uses vite-plugin-pwa (generateSW, /sw.js) registered only from src/lib/registerSW.ts, which refuses previews/dev; navigations are NetworkFirst so new versions always load online.
