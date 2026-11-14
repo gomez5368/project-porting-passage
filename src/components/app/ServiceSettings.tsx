@@ -2,6 +2,7 @@ import { useState } from "react";
 import { CalendarClock, Droplet, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FormField } from "@/components/app/ui";
+import { PlannedServiceSection } from "@/components/app/PlannedServiceSection";
 import { statusBar, statusCard, statusText } from "@/components/app/reminderTone";
 import { useCarData } from "@/context/CarDataContext";
 import { formatDate, formatNumber } from "@/lib/fuelCalculations";
@@ -59,6 +60,7 @@ export function ServiceSettings() {
         })}
       </div>
       <OilSection key={selectedVehicle.id} reminders={current} odometer={odometer} onSave={saveReminders} />
+      <PlannedServiceSection key={`planned-${selectedVehicle.id}`} reminders={current} odometer={odometer} onSave={saveReminders} />
     </section>
   );
 }

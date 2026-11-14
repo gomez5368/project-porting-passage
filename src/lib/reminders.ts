@@ -1,4 +1,4 @@
-import type { AppState, DeadlineType, FillUp, Vehicle, VehicleReminders } from "@/types/fuel";
+import type { AppState, DeadlineType, FillUp, PlannedService, Vehicle, VehicleReminders } from "@/types/fuel";
 
 export const DEADLINE_LABELS: Record<DeadlineType, string> = {
   stk: "STK",
@@ -64,6 +64,15 @@ export function oilState(reminders: VehicleReminders, odometer: number): OilStat
 
 export type ReminderAlert = { key: string; label: string; status: Exclude<ReminderStatus, "ok">; text: string };
 
+export function plannedServiceState(service: PlannedService, odometer: number, today: string): { status: ReminderStatus; text: string } {
+  const days = service.date ? daysUntil(service.date, today) : undefined;
+  const km = service.odometer !== undefined ? service.odometer - odometer : undefined;
+  const statuses = [days !== undefined ? deadlineStatus(days) : "ok", km !== undefined ? (km < 0 ? "overdue" : km < OIL_WARNING_KM ? "soon" : "ok") : "ok"];
+  const status = statuses.includes("overdue") ? "overdue" : statuses.includes("soon") ? "soon" : "ok";
+  const dateText = days === undefined ? "" : days < 0 ? `po termíne ${-days} ${plural(days, "deň", "dni", "dní")}` : days === 0 ? "termín dnes" : `zostáva ${days} ${plural(days, "deň", "dni", "dní")}`;
+  return { status, text: [dateText, km !== undefined ? formatKmLeft(km) : ""].filter(Boolean).join(" · ") };
+}
+
 /** Approaching or overdue items for the overview banner. */
 export function reminderAlerts(reminders: VehicleReminders, odometer: number, today: string): ReminderAlert[] {
   const alerts: ReminderAlert[] = [];
@@ -78,6 +87,10 @@ export function reminderAlerts(reminders: VehicleReminders, odometer: number, to
   const oil = oilState(reminders, odometer);
   if (oil && oil.status !== "ok") {
     alerts.push({ key: "oil", label: "Výmena oleja", status: oil.status, text: formatKmLeft(oil.remainingKm) });
+  }
+  for (const service of reminders.plannedServices ?? []) {
+    const state = plannedServiceState(service, odometer, today);
+    if (state.status !== "ok") alerts.push({ key: `service-${service.id}`, label: service.title, status: state.status, text: state.text });
   }
   return alerts;
 }

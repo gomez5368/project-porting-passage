@@ -25,6 +25,10 @@ const stateSchema = z.object({
     deadlines: z.object({ stk: date.optional(), ek: date.optional(), pzp: date.optional(), havarijne: date.optional(), dialnicna: date.optional() }),
     oilLastOdometer: nonNegative.optional(),
     oilIntervalKm: z.number().finite().positive().max(1_000_000),
+    plannedServices: z.array(z.object({
+      id, title: z.string().trim().min(1).max(100),
+      date: date.optional(), odometer: nonNegative.int().optional(),
+    }).refine((item) => item.date !== undefined || item.odometer !== undefined, "Chýba termín servisu.")).refine((items) => new Set(items.map((item) => item.id)).size === items.length, "Duplicitný servis.").optional(),
   })).optional(),
   selectedVehicleId: id.nullable(),
 }).superRefine((state, ctx) => {

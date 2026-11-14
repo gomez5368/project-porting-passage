@@ -55,12 +55,20 @@ export type Cost = {
 export const DEADLINE_TYPES = ['stk', 'ek', 'pzp', 'havarijne', 'dialnicna'] as const;
 export type DeadlineType = (typeof DEADLINE_TYPES)[number];
 
+export type PlannedService = {
+  id: string;
+  title: string;
+  date?: string | undefined;
+  odometer?: number | undefined;
+};
+
 /** Per-vehicle deadlines (expiry dates) and oil-change interval. */
 export type VehicleReminders = {
   vehicleId: string;
   deadlines: { [K in DeadlineType]?: string | undefined };
   oilLastOdometer?: number | undefined;
   oilIntervalKm: number;
+  plannedServices?: PlannedService[] | undefined;
 };
 
 export type AppState = {
