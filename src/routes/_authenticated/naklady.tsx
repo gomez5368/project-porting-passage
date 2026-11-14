@@ -12,7 +12,7 @@ import { formatCurrency, formatDate, formatNumber } from "@/lib/fuelCalculations
 import { cn } from "@/lib/utils";
 import type { Cost } from "@/types/fuel";
 
-export const Route = createFileRoute("/naklady")({
+export const Route = createFileRoute("/_authenticated/naklady")({
   head: () => ({
     meta: [
       { title: "Náklady na auto – Spotreba auta" },

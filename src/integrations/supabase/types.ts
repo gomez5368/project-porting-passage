@@ -14,6 +14,27 @@ export type Database = {
   }
   public: {
     Tables: {
+      car_account_data: {
+        Row: {
+          revision: number
+          state: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          revision?: number
+          state: Json
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          revision?: number
+          state?: Json
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       receipt_ai_guard: {
         Row: {
           day: string

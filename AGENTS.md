@@ -28,7 +28,7 @@ use the editor.
   own key and store it in Secrets.
 - **Secrets.** Lovable manages them. Do not put secret values in the repo.
 <!-- LOVABLE:END -->
-- App data (vehicles, fill-ups) lives in browser localStorage via src/context/CarDataContext.tsx under key spotreba-app-state-v1 — kept from the original Bolt app so no backend is needed.
+- App data uses one validated atomic snapshot per authenticated account in car_account_data with owner RLS and optimistic revisions; account-scoped browser caches retain pending writes, while the legacy local key is read only for confirmed transfer to avoid cross-account mixing.
 - Vehicle photos are resized and JPEG-compressed in the browser, stored as optional inline data in vehicle state and validated in JSON backups so photos remain portable without a backend.
 - Browser-only WASM (sql.js for .db3 backup import) is served from public/wasm and loaded by URL — importing .wasm from src breaks the server bundle.
 - JSON backup validation and serialization live in a browser-safe shared module; restores replace the complete state only after validation and confirmation to avoid partial or orphaned data.
@@ -37,4 +37,5 @@ use the editor.
 - App source lives only in src/ (TanStack Start); old Bolt/Expo or Next.js files uploaded to the repo root are not part of the app and break package.json/tsconfig, so they must not be merged in.
 - Per-vehicle deadlines, oil-change settings and planned services are an optional reminders list on app state; shared status logic evaluates either date or odometer first so settings, overview and JSON backups stay consistent.
 - Offline mode uses vite-plugin-pwa (generateSW, /sw.js) registered only from src/lib/registerSW.ts, which refuses previews/dev; navigations are NetworkFirst so new versions always load online.
-- Receipt AI is opt-in and authenticated: compress photos in the browser, stream extraction through a server-only AI Gateway boundary, persist only abuse counters/terminal access blocks in Cloud, and save reviewed records to existing local car data without storing receipt photos.
+- Receipt AI is opt-in and authenticated: compress photos in the browser, stream extraction through a server-only AI Gateway boundary, and save reviewed records through the account data context without storing receipt photos; Cloud guard counters remain service-only.
+- Keep all private content under the client-only _authenticated route gate, and enforce authentication again on every cloud server function; one root auth subscriber drives account state and logout clears query caches.

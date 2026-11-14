@@ -5,7 +5,7 @@ import { monthlyTotals } from "@/lib/monthlyTotals";
 import { formatNumber, formatShortDate, sortFillUps, summarizeVehicle } from "@/lib/fuelCalculations";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/statistiky")({
+export const Route = createFileRoute("/_authenticated/statistiky")({
   head: () => ({
     meta: [
       { title: "Štatistiky spotreby – Spotreba auta" },

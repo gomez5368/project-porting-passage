@@ -1,5 +1,7 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type Context, type ReactNode } from 'react';
-import { createId, loadAppState, saveAppState } from '@/lib/storage';
+import { createContext, useCallback, useContext, useMemo, type Context, type ReactNode } from 'react';
+import { createId } from '@/lib/storage';
+import { useAccount } from '@/context/AuthContext';
+import { useCloudCars } from '@/context/useCloudCars';
 import { mergeImport } from '@/lib/backupMerge';
 import { removeVehicle, replaceCost, replaceFillUp, validateBackup } from '@/lib/jsonBackup';
 import { upsertReminders } from '@/lib/reminders';
@@ -12,6 +14,13 @@ export { costKey } from '@/lib/backupMerge';
 
 type CarDataContextValue = AppState & {
   isReady: boolean;
+  cloudStatus: string;
+  cloudError: string;
+  retryCloud: () => void;
+  reloadCloud: () => void;
+  legacyData: AppState | null;
+  transferLegacy: () => void;
+  dismissLegacy: () => void;
   selectedVehicle: Vehicle | null;
   selectedFillUps: FillUp[];
   selectedCosts: Cost[];
@@ -36,17 +45,9 @@ const contextStore = globalThis as typeof globalThis & { __carDataContext?: Cont
 const CarDataContext = (contextStore.__carDataContext ??= createContext<CarDataContextValue | null>(null));
 
 export function CarDataProvider({ children }: { children: ReactNode }) {
-  const [state, setState] = useState<AppState>({ vehicles: [], fillUps: [], costs: [], selectedVehicleId: null });
-  const [isReady, setIsReady] = useState(false);
-
-  useEffect(() => {
-    setState(loadAppState());
-    setIsReady(true);
-  }, []);
-
-  useEffect(() => {
-    if (isReady) saveAppState(state);
-  }, [state, isReady]);
+  const { user } = useAccount();
+  const cloud = useCloudCars(user?.id);
+  const { state, setState, ready: isReady } = cloud;
 
   const addVehicle = useCallback((vehicle: NewVehicle) => {
     const created: Vehicle = { ...vehicle, id: createId() };
@@ -105,7 +106,6 @@ export function CarDataProvider({ children }: { children: ReactNode }) {
 
   const restoreData = useCallback((data: AppState) => {
     const restored = validateBackup(data);
-    saveAppState(restored);
     setState(restored);
   }, []);
 
@@ -125,6 +125,13 @@ export function CarDataProvider({ children }: { children: ReactNode }) {
       deleteCost,
       updateCost,
       isReady,
+      cloudStatus: cloud.status,
+      cloudError: cloud.error,
+      retryCloud: cloud.retry,
+      reloadCloud: cloud.reloadCloud,
+      legacyData: cloud.legacy,
+      transferLegacy: cloud.transfer,
+      dismissLegacy: cloud.dismissLegacy,
       addVehicle,
       selectVehicle,
       updateVehicle,
@@ -136,7 +143,7 @@ export function CarDataProvider({ children }: { children: ReactNode }) {
       importVehicles,
       saveReminders,
     };
-  }, [state, isReady, saveReminders, addVehicle, selectVehicle, updateVehicle, deleteVehicle, addFillUps, deleteFillUp, updateFillUp, restoreData, importVehicles, addCost, deleteCost, updateCost]);
+  }, [state, isReady, cloud, saveReminders, addVehicle, selectVehicle, updateVehicle, deleteVehicle, addFillUps, deleteFillUp, updateFillUp, restoreData, importVehicles, addCost, deleteCost, updateCost]);
 
   return <CarDataContext.Provider value={value}>{children}</CarDataContext.Provider>;
 }

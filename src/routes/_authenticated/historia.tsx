@@ -20,7 +20,7 @@ import { estimateTankLevel, previousFillUp } from "@/lib/tankEstimate";
 import { summarizeVehicle as summarize } from "@/lib/fuelCalculations";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/historia")({
+export const Route = createFileRoute("/_authenticated/historia")({
   head: () => ({
     meta: [
       { title: "História tankovaní – Spotreba auta" },

@@ -27,3 +27,7 @@
 - [x] AI bloček: bezpečné prihlásenie, komprimovaná fotka, načítanie na požiadanie a kontrola pred uložením
 - [x] Overiť skutočné AI načítanie tankovania i údržby na skúšobných fotkách
 - [ ] Overiť celý postup po prihlásení v aplikácii — čaká na prvé prihlásenie používateľa
+- [x] Prihlásenie e-mailom, registrácia a obnovenie hesla
+- [x] Súkromné cloudové dáta, potvrdený prenos lokálnej histórie a ochrana pred prepísaním
+- [x] Testy izolácie cache a uloženia, vlastnícke RLS, serverové a AI nastavenia; 97 testov a mobilné prihlásenie
+- [ ] Overiť prenos a obnovenie cloudovej histórie po vymazaní prehliadača — čaká na prvý potvrdený účet používateľa

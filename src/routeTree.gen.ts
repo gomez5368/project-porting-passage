@@ -9,55 +9,72 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
-import { Route as HistoriaRouteImport } from './routes/historia'
-import { Route as NakladyRouteImport } from './routes/naklady'
-import { Route as NastaveniaRouteImport } from './routes/nastavenia'
-import { Route as StatistikyRouteImport } from './routes/statistiky'
-import { Route as TankovanieRouteImport } from './routes/tankovanie'
-import { Route as TerminyRouteImport } from './routes/terminy'
-import { Route as VozidlaRouteImport } from './routes/vozidla'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
+import { Route as AuthenticatedHistoriaRouteImport } from './routes/_authenticated/historia'
+import { Route as AuthenticatedNakladyRouteImport } from './routes/_authenticated/naklady'
+import { Route as AuthenticatedNastaveniaRouteImport } from './routes/_authenticated/nastavenia'
+import { Route as AuthenticatedStatistikyRouteImport } from './routes/_authenticated/statistiky'
+import { Route as AuthenticatedTankovanieRouteImport } from './routes/_authenticated/tankovanie'
+import { Route as AuthenticatedTerminyRouteImport } from './routes/_authenticated/terminy'
+import { Route as AuthenticatedVozidlaRouteImport } from './routes/_authenticated/vozidla'
 import { Route as ApiReceiptRouteImport } from './routes/api/receipt'
 
-const IndexRoute = IndexRouteImport.update({
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const HistoriaRoute = HistoriaRouteImport.update({
+const AuthenticatedHistoriaRoute = AuthenticatedHistoriaRouteImport.update({
   id: '/historia',
   path: '/historia',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const NakladyRoute = NakladyRouteImport.update({
+const AuthenticatedNakladyRoute = AuthenticatedNakladyRouteImport.update({
   id: '/naklady',
   path: '/naklady',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const NastaveniaRoute = NastaveniaRouteImport.update({
+const AuthenticatedNastaveniaRoute = AuthenticatedNastaveniaRouteImport.update({
   id: '/nastavenia',
   path: '/nastavenia',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const StatistikyRoute = StatistikyRouteImport.update({
+const AuthenticatedStatistikyRoute = AuthenticatedStatistikyRouteImport.update({
   id: '/statistiky',
   path: '/statistiky',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const TankovanieRoute = TankovanieRouteImport.update({
+const AuthenticatedTankovanieRoute = AuthenticatedTankovanieRouteImport.update({
   id: '/tankovanie',
   path: '/tankovanie',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const TerminyRoute = TerminyRouteImport.update({
+const AuthenticatedTerminyRoute = AuthenticatedTerminyRouteImport.update({
   id: '/terminy',
   path: '/terminy',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const VozidlaRoute = VozidlaRouteImport.update({
+const AuthenticatedVozidlaRoute = AuthenticatedVozidlaRouteImport.update({
   id: '/vozidla',
   path: '/vozidla',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const ApiReceiptRoute = ApiReceiptRouteImport.update({
   id: '/api/receipt',
@@ -66,43 +83,52 @@ const ApiReceiptRoute = ApiReceiptRouteImport.update({
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
-  '/historia': typeof HistoriaRoute
-  '/naklady': typeof NakladyRoute
-  '/nastavenia': typeof NastaveniaRoute
-  '/statistiky': typeof StatistikyRoute
-  '/tankovanie': typeof TankovanieRoute
-  '/terminy': typeof TerminyRoute
-  '/vozidla': typeof VozidlaRoute
+  '/': typeof AuthenticatedIndexRoute
+  '/auth': typeof AuthRoute
+  '/reset-password': typeof ResetPasswordRoute
+  '/historia': typeof AuthenticatedHistoriaRoute
+  '/naklady': typeof AuthenticatedNakladyRoute
+  '/nastavenia': typeof AuthenticatedNastaveniaRoute
+  '/statistiky': typeof AuthenticatedStatistikyRoute
+  '/tankovanie': typeof AuthenticatedTankovanieRoute
+  '/terminy': typeof AuthenticatedTerminyRoute
+  '/vozidla': typeof AuthenticatedVozidlaRoute
   '/api/receipt': typeof ApiReceiptRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
-  '/historia': typeof HistoriaRoute
-  '/naklady': typeof NakladyRoute
-  '/nastavenia': typeof NastaveniaRoute
-  '/statistiky': typeof StatistikyRoute
-  '/tankovanie': typeof TankovanieRoute
-  '/terminy': typeof TerminyRoute
-  '/vozidla': typeof VozidlaRoute
+  '/auth': typeof AuthRoute
+  '/reset-password': typeof ResetPasswordRoute
+  '/historia': typeof AuthenticatedHistoriaRoute
+  '/naklady': typeof AuthenticatedNakladyRoute
+  '/nastavenia': typeof AuthenticatedNastaveniaRoute
+  '/statistiky': typeof AuthenticatedStatistikyRoute
+  '/tankovanie': typeof AuthenticatedTankovanieRoute
+  '/terminy': typeof AuthenticatedTerminyRoute
+  '/vozidla': typeof AuthenticatedVozidlaRoute
   '/api/receipt': typeof ApiReceiptRoute
+  '/': typeof AuthenticatedIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
-  '/historia': typeof HistoriaRoute
-  '/naklady': typeof NakladyRoute
-  '/nastavenia': typeof NastaveniaRoute
-  '/statistiky': typeof StatistikyRoute
-  '/tankovanie': typeof TankovanieRoute
-  '/terminy': typeof TerminyRoute
-  '/vozidla': typeof VozidlaRoute
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/auth': typeof AuthRoute
+  '/reset-password': typeof ResetPasswordRoute
+  '/_authenticated/historia': typeof AuthenticatedHistoriaRoute
+  '/_authenticated/naklady': typeof AuthenticatedNakladyRoute
+  '/_authenticated/nastavenia': typeof AuthenticatedNastaveniaRoute
+  '/_authenticated/statistiky': typeof AuthenticatedStatistikyRoute
+  '/_authenticated/tankovanie': typeof AuthenticatedTankovanieRoute
+  '/_authenticated/terminy': typeof AuthenticatedTerminyRoute
+  '/_authenticated/vozidla': typeof AuthenticatedVozidlaRoute
   '/api/receipt': typeof ApiReceiptRoute
+  '/_authenticated/': typeof AuthenticatedIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/auth'
+    | '/reset-password'
     | '/historia'
     | '/naklady'
     | '/nastavenia'
@@ -113,7 +139,8 @@ export interface FileRouteTypes {
     | '/api/receipt'
   fileRoutesByTo: FileRoutesByTo
   to:
-    | '/'
+    | '/auth'
+    | '/reset-password'
     | '/historia'
     | '/naklady'
     | '/nastavenia'
@@ -122,88 +149,108 @@ export interface FileRouteTypes {
     | '/terminy'
     | '/vozidla'
     | '/api/receipt'
+    | '/'
   id:
     | '__root__'
-    | '/'
-    | '/historia'
-    | '/naklady'
-    | '/nastavenia'
-    | '/statistiky'
-    | '/tankovanie'
-    | '/terminy'
-    | '/vozidla'
+    | '/_authenticated'
+    | '/auth'
+    | '/reset-password'
+    | '/_authenticated/historia'
+    | '/_authenticated/naklady'
+    | '/_authenticated/nastavenia'
+    | '/_authenticated/statistiky'
+    | '/_authenticated/tankovanie'
+    | '/_authenticated/terminy'
+    | '/_authenticated/vozidla'
     | '/api/receipt'
+    | '/_authenticated/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
-  HistoriaRoute: typeof HistoriaRoute
-  NakladyRoute: typeof NakladyRoute
-  NastaveniaRoute: typeof NastaveniaRoute
-  StatistikyRoute: typeof StatistikyRoute
-  TankovanieRoute: typeof TankovanieRoute
-  TerminyRoute: typeof TerminyRoute
-  VozidlaRoute: typeof VozidlaRoute
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AuthRoute: typeof AuthRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
   ApiReceiptRoute: typeof ApiReceiptRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/': {
+      id: '/_authenticated/'
       path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AuthenticatedIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/historia': {
-      id: '/historia'
+    '/_authenticated/historia': {
+      id: '/_authenticated/historia'
       path: '/historia'
       fullPath: '/historia'
-      preLoaderRoute: typeof HistoriaRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AuthenticatedHistoriaRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/naklady': {
-      id: '/naklady'
+    '/_authenticated/naklady': {
+      id: '/_authenticated/naklady'
       path: '/naklady'
       fullPath: '/naklady'
-      preLoaderRoute: typeof NakladyRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AuthenticatedNakladyRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/nastavenia': {
-      id: '/nastavenia'
+    '/_authenticated/nastavenia': {
+      id: '/_authenticated/nastavenia'
       path: '/nastavenia'
       fullPath: '/nastavenia'
-      preLoaderRoute: typeof NastaveniaRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AuthenticatedNastaveniaRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/statistiky': {
-      id: '/statistiky'
+    '/_authenticated/statistiky': {
+      id: '/_authenticated/statistiky'
       path: '/statistiky'
       fullPath: '/statistiky'
-      preLoaderRoute: typeof StatistikyRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AuthenticatedStatistikyRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/tankovanie': {
-      id: '/tankovanie'
+    '/_authenticated/tankovanie': {
+      id: '/_authenticated/tankovanie'
       path: '/tankovanie'
       fullPath: '/tankovanie'
-      preLoaderRoute: typeof TankovanieRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AuthenticatedTankovanieRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/terminy': {
-      id: '/terminy'
+    '/_authenticated/terminy': {
+      id: '/_authenticated/terminy'
       path: '/terminy'
       fullPath: '/terminy'
-      preLoaderRoute: typeof TerminyRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AuthenticatedTerminyRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/vozidla': {
-      id: '/vozidla'
+    '/_authenticated/vozidla': {
+      id: '/_authenticated/vozidla'
       path: '/vozidla'
       fullPath: '/vozidla'
-      preLoaderRoute: typeof VozidlaRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AuthenticatedVozidlaRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/api/receipt': {
       id: '/api/receipt'
@@ -215,15 +262,35 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedHistoriaRoute: typeof AuthenticatedHistoriaRoute
+  AuthenticatedNakladyRoute: typeof AuthenticatedNakladyRoute
+  AuthenticatedNastaveniaRoute: typeof AuthenticatedNastaveniaRoute
+  AuthenticatedStatistikyRoute: typeof AuthenticatedStatistikyRoute
+  AuthenticatedTankovanieRoute: typeof AuthenticatedTankovanieRoute
+  AuthenticatedTerminyRoute: typeof AuthenticatedTerminyRoute
+  AuthenticatedVozidlaRoute: typeof AuthenticatedVozidlaRoute
+  AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedHistoriaRoute: AuthenticatedHistoriaRoute,
+  AuthenticatedNakladyRoute: AuthenticatedNakladyRoute,
+  AuthenticatedNastaveniaRoute: AuthenticatedNastaveniaRoute,
+  AuthenticatedStatistikyRoute: AuthenticatedStatistikyRoute,
+  AuthenticatedTankovanieRoute: AuthenticatedTankovanieRoute,
+  AuthenticatedTerminyRoute: AuthenticatedTerminyRoute,
+  AuthenticatedVozidlaRoute: AuthenticatedVozidlaRoute,
+  AuthenticatedIndexRoute: AuthenticatedIndexRoute,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
-  HistoriaRoute: HistoriaRoute,
-  NakladyRoute: NakladyRoute,
-  NastaveniaRoute: NastaveniaRoute,
-  StatistikyRoute: StatistikyRoute,
-  TankovanieRoute: TankovanieRoute,
-  TerminyRoute: TerminyRoute,
-  VozidlaRoute: VozidlaRoute,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AuthRoute: AuthRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
   ApiReceiptRoute: ApiReceiptRoute,
 }
 export const routeTree = rootRouteImport

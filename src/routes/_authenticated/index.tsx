@@ -10,7 +10,7 @@ import { useEffect, useState } from "react";
 import { DatabaseBackup } from "lucide-react";
 import { LAST_BACKUP_KEY, daysSince, needsBackupReminder } from "@/lib/backupReminder";
 
-export const Route = createFileRoute("/")({
+export const Route = createFileRoute("/_authenticated/")({
   head: () => ({
     meta: [
       { title: "Prehľad spotreby – Spotreba auta" },

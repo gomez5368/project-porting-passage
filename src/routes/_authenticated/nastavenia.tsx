@@ -3,7 +3,7 @@ import { ScreenHeader } from "@/components/app/ui";
 import { VehicleSettings } from "@/components/app/VehicleSettings";
 import { ServiceSettings } from "@/components/app/ServiceSettings";
 
-export const Route = createFileRoute("/nastavenia")({
+export const Route = createFileRoute("/_authenticated/nastavenia")({
   head: () => ({
     meta: [
       { title: "Nastavenia vozidla – Spotreba auta" },

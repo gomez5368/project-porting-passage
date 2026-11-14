@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from "react";
-import { Camera, LoaderCircle, Square, LogOut } from "lucide-react";
+import { Camera, LoaderCircle, Square } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { FormField } from "@/components/app/ui";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable";
+import { useAccount } from "@/context/AuthContext";
 import { useCarData } from "@/context/CarDataContext";
 import { prepareReceiptPhoto, receiptSchema, receiptValues, type ReceiptData } from "@/lib/receipt";
 import { parseDecimal } from "@/lib/parseDecimal";
@@ -15,7 +15,8 @@ import "@lovable.dev/cloud-auth-js/styles.css";
 export function ReceiptImport() {
   const { selectedVehicle, vehicles, addFillUps, addCost } = useCarData();
   const [open, setOpen] = useState(false);
-  const [signedIn, setSignedIn] = useState(false);
+  const { user } = useAccount();
+  const signedIn = !!user;
   const [image, setImage] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState("");
@@ -25,9 +26,7 @@ export function ReceiptImport() {
   const controller = useRef<AbortController | null>(null);
   const input = useRef<HTMLInputElement>(null);
   useEffect(() => {
-    void supabase.auth.getSession().then(({ data }) => setSignedIn(!!data.session));
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => setSignedIn(!!session));
-    return () => { listener.subscription.unsubscribe(); controller.current?.abort(); };
+    return () => { controller.current?.abort(); };
   }, []);
   const reset = () => { controller.current?.abort(); setImage(null); setData(null); setError(null); setBusy(false); };
   const analyze = async () => {
@@ -66,8 +65,7 @@ export function ReceiptImport() {
     {saved ? <p role="status" className="mt-2 text-sm text-success">Záznam z bločku bol uložený.</p> : null}
     <Dialog open={open} onOpenChange={(value) => { if (!value) reset(); setOpen(value); }}>
       <DialogContent className="max-h-[90vh] overflow-y-auto"><DialogHeader><DialogTitle>Načítať bloček</DialogTitle><DialogDescription>Fotka sa odošle Lovable AI iba po kliknutí na Načítať údaje. Čítanie čerpá AI kredity. Fotku neukladáme do histórie; pred uložením skontrolujte údaje.</DialogDescription></DialogHeader>
-        {!signedIn ? <div className="space-y-3"><p className="text-sm text-muted-foreground">AI načítanie vyžaduje prihlásenie. Vaše existujúce údaje zostanú v tomto prehliadači.</p><Button className="lovable-auth-button w-full" onClick={async () => { const result = await lovable.auth.signInWithOAuth("lovable", { redirect_uri: window.location.origin + "/historia" }); if (result.error) setError(result.error.message); }}>Pokračovať s Lovable</Button></div> : <>
-          <div className="flex justify-end"><Button variant="ghost" size="sm" onClick={() => { reset(); void supabase.auth.signOut(); }}><LogOut className="size-4" />Odhlásiť AI</Button></div>
+        {!signedIn ? <p className="text-sm text-muted-foreground">Pre AI načítanie sa prihláste do svojho účtu.</p> : <>
           {!data ? <>
             <input ref={input} type="file" accept="image/jpeg,image/png,image/webp" aria-label="Fotka bločku" className="sr-only" onChange={async (e) => { const file = e.target.files?.[0]; e.target.value = ""; if (!file) return; setError(null); setBusy(true); try { setImage(await prepareReceiptPhoto(file)); } catch (error) { setError(error instanceof Error ? error.message : "Fotku sa nepodarilo otvoriť."); } finally { setBusy(false); } }} />
             <Button variant="outline" className="w-full" disabled={busy} onClick={() => input.current?.click()}><Camera />{image ? "Zmeniť fotku" : "Nahrať fotku bločku"}</Button>

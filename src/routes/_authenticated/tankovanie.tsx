@@ -7,7 +7,7 @@ import { vehicleFuelType } from "@/lib/fuelTypes";
 import { estimateTankLevel, previousFillUp } from "@/lib/tankEstimate";
 import { summarizeVehicle } from "@/lib/fuelCalculations";
 
-export const Route = createFileRoute("/tankovanie")({
+export const Route = createFileRoute("/_authenticated/tankovanie")({
   head: () => ({
     meta: [
       { title: "Nové tankovanie – Spotreba auta" },

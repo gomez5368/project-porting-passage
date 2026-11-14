@@ -8,6 +8,20 @@
       "when": 1794679793060,
       "tag": "0000_receipt_ai_guard",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1794680734469,
+      "tag": "0001_private_car_accounts",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1794680966169,
+      "tag": "0002_tighten_private_car_grants",
+      "breakpoints": true
     }
   ]
 }

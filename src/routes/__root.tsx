@@ -16,6 +16,7 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { ArrowLeft } from "lucide-react";
 import { CarDataProvider } from "@/context/CarDataContext";
+import { AuthProvider } from "@/context/AuthContext";
 
 function NotFoundComponent() {
   return (
@@ -139,16 +140,16 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-      <CarDataProvider>
+      <AuthProvider><CarDataProvider>
         <main className="mx-auto max-w-2xl px-4 pb-10 pt-6">
-          {pathname !== "/" ? (
+          {pathname !== "/" && pathname !== "/auth" && pathname !== "/reset-password" ? (
             <Link to="/" className="mb-5 inline-flex min-h-11 items-center gap-2 rounded-lg px-2 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground">
               <ArrowLeft className="size-5" /> Späť na prehľad
             </Link>
           ) : null}
           <Outlet />
         </main>
-      </CarDataProvider>
+      </CarDataProvider></AuthProvider>
     </QueryClientProvider>
   );
 }
