@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
-import { Car, History, Pencil, Trash2, Upload, Wallet } from "lucide-react";
+import { Car, Fuel, Pencil, Trash2, Upload, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
@@ -21,7 +21,7 @@ export function HistoryCostsNav() {
   return (
     <nav aria-label="História a náklady" className="mb-5 grid grid-cols-2 gap-2 rounded-xl border border-border bg-muted p-1">
       <Link to="/historia" activeOptions={{ exact: true }} className="flex items-center justify-center gap-2 rounded-lg px-3 py-2.5 text-sm font-semibold text-muted-foreground"
-        activeProps={{ className: "bg-card text-foreground" }}><History className="size-4" /> Denník</Link>
+        activeProps={{ className: "bg-card text-foreground" }}><Fuel className="size-4" /> Tankovania</Link>
       <Link to="/naklady" activeOptions={{ exact: true }} className="flex items-center justify-center gap-2 rounded-lg px-3 py-2.5 text-sm font-semibold text-muted-foreground"
         activeProps={{ className: "bg-card text-foreground" }}><Wallet className="size-4" /> Náklady</Link>
     </nav>

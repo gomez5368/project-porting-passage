@@ -69,7 +69,7 @@ function Overview() {
 
       <nav aria-label="Hlavné menu" className="mb-6 grid grid-cols-2 gap-3">
         <HomeTile to="/tankovanie" label="Nové tankovanie" icon={Fuel} tone="fuel" />
-        <HomeTile to="/historia" label="História a Náklady" icon={History} tone="costs" />
+        <HomeTile to="/historia" label="História tankovaní" icon={History} tone="costs" />
         <HomeTile to="/statistiky" label="Štatistiky" icon={BarChart3} tone="stats" />
         <HomeTile to="/nastavenia" label="Nastavenia vozidla" icon={Settings} tone="settings" badge={inspectionAlerts.length > 0 ? "STK/EK" : undefined} />
       </nav>
