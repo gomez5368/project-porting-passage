@@ -19,3 +19,4 @@
 - [x] Nová jantárová ikona vo všetkých veľkostiach a zladený manifest
 - [x] Overiť nový vzhľad na mobile a desktope, testy a zostavenie
 - [x] Čerpacia stanica pri tankovaní: formulár, denník, JSON/CSV a doplnenie z .db3 bez duplicít
+- [x] Overiť import staníc a predvyplnenie pri úprave tankovania po hlásení prázdneho políčka (393 staníc; ceruzka otvorí uloženú stanicu)
