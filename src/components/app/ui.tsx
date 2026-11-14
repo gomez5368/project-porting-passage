@@ -94,7 +94,7 @@ export function EmptyVehicleState() {
   );
 }
 
-const statTone = { primary: "bg-primary", secondary: "bg-secondary", warning: "bg-warning", success: "bg-success" } as const;
+const statTone = { primary: "bg-primary", secondary: "bg-secondary", warning: "bg-warning", success: "bg-success", coral: "bg-chart-2", violet: "bg-chart-4" } as const;
 
 export function StatCard({ label, value, unit, tone }: { label: string; value: string; unit?: string; tone: keyof typeof statTone }) {
   return (
@@ -112,11 +112,11 @@ export function StatCard({ label, value, unit, tone }: { label: string; value: s
 export type TrendPoint = { label: string; value: number };
 
 export function TrendChart({ title, points, tone, formatValue, emptyText }: {
-  title: string; points: TrendPoint[]; tone: "primary" | "secondary"; formatValue: (v: number) => string; emptyText: string;
+  title: string; points: TrendPoint[]; tone: "primary" | "secondary" | "coral"; formatValue: (v: number) => string; emptyText: string;
 }) {
   const W = 600, H = 200, L = 80, R = 16, T = 16, B = 32;
   const latest = points.at(-1);
-  const color = tone === "primary" ? "text-primary" : "text-secondary";
+  const color = { primary: "text-primary", secondary: "text-secondary", coral: "text-chart-2" }[tone];
   let chart: ReactNode = <p className="text-sm text-muted-foreground">{emptyText}</p>;
   if (points.length > 0) {
     const iw = W - L - R, ih = H - T - B, base = T + ih;

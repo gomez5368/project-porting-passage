@@ -78,42 +78,48 @@
 }
 
 :root {
-  --radius: 0.875rem;
-  --background: oklch(0.16 0.012 250);
-  --foreground: oklch(0.97 0.007 250);
-  --card: oklch(0.205 0.017 250);
-  --card-foreground: oklch(0.97 0.007 250);
-  --popover: oklch(0.235 0.02 250);
-  --popover-foreground: oklch(0.97 0.007 250);
-  --primary: oklch(0.79 0.15 163);
-  --primary-foreground: oklch(0.18 0.04 163);
-  --secondary: oklch(0.75 0.14 232);
-  --secondary-foreground: oklch(0.18 0.04 232);
-  --muted: oklch(0.235 0.02 250);
-  --muted-foreground: oklch(0.62 0.025 250);
-  --accent: oklch(0.79 0.15 163 / 14%);
-  --accent-foreground: oklch(0.79 0.15 163);
-  --warning: oklch(0.84 0.16 84);
-  --caution: oklch(0.76 0.17 55);
-  --success: oklch(0.8 0.18 150);
-  --destructive: oklch(0.71 0.17 22);
-  --destructive-foreground: oklch(0.97 0.007 250);
-  --border: oklch(0.3 0.025 250);
-  --input: oklch(0.3 0.025 250);
-  --ring: oklch(0.79 0.15 163);
-  --chart-1: oklch(0.79 0.15 163);
-  --chart-2: oklch(0.75 0.14 232);
-  --chart-3: oklch(0.84 0.16 84);
-  --chart-4: oklch(0.8 0.18 150);
-  --chart-5: oklch(0.71 0.17 22);
-  --sidebar: oklch(0.205 0.017 250);
-  --sidebar-foreground: oklch(0.97 0.007 250);
-  --sidebar-primary: oklch(0.79 0.15 163);
-  --sidebar-primary-foreground: oklch(0.18 0.04 163);
-  --sidebar-accent: oklch(0.235 0.02 250);
-  --sidebar-accent-foreground: oklch(0.97 0.007 250);
-  --sidebar-border: oklch(0.3 0.025 250);
-  --sidebar-ring: oklch(0.79 0.15 163);
+  --radius: 1rem;
+  --background: oklch(0.19 0.035 255);
+  --foreground: oklch(0.96 0.018 85);
+  --card: oklch(0.255 0.045 255 / 72%);
+  --card-foreground: oklch(0.96 0.018 85);
+  --popover: oklch(0.245 0.04 255);
+  --popover-foreground: oklch(0.96 0.018 85);
+  --primary: oklch(0.84 0.165 82);
+  --primary-foreground: oklch(0.22 0.045 255);
+  --secondary: oklch(0.79 0.125 195);
+  --secondary-foreground: oklch(0.2 0.04 235);
+  --muted: oklch(0.27 0.04 255 / 78%);
+  --muted-foreground: oklch(0.75 0.035 250);
+  --accent: oklch(0.84 0.165 82 / 14%);
+  --accent-foreground: oklch(0.88 0.15 85);
+  --warning: oklch(0.86 0.16 88);
+  --caution: oklch(0.78 0.17 55);
+  --success: oklch(0.8 0.12 185);
+  --destructive: oklch(0.72 0.19 25);
+  --destructive-foreground: oklch(0.97 0.015 85);
+  --border: oklch(0.48 0.055 250 / 48%);
+  --input: oklch(0.5 0.055 250 / 55%);
+  --ring: oklch(0.84 0.165 82);
+  --chart-1: oklch(0.84 0.165 82);
+  --chart-2: oklch(0.75 0.18 35);
+  --chart-3: oklch(0.79 0.125 195);
+  --chart-4: oklch(0.75 0.14 315);
+  --chart-5: oklch(0.87 0.14 105);
+  --sidebar: oklch(0.255 0.045 255 / 72%);
+  --sidebar-foreground: oklch(0.96 0.018 85);
+  --sidebar-primary: oklch(0.84 0.165 82);
+  --sidebar-primary-foreground: oklch(0.22 0.045 255);
+  --sidebar-accent: oklch(0.84 0.165 82 / 14%);
+  --sidebar-accent-foreground: oklch(0.88 0.15 85);
+  --sidebar-border: oklch(0.48 0.055 250 / 48%);
+  --sidebar-ring: oklch(0.84 0.165 82);
+  --gradient-page:
+    radial-gradient(ellipse 90% 45% at 8% -5%, color-mix(in oklab, var(--secondary) 12%, transparent), transparent 70%),
+    radial-gradient(ellipse 75% 40% at 95% 0%, color-mix(in oklab, var(--primary) 9%, transparent), transparent 72%),
+    linear-gradient(165deg, var(--background), oklch(0.155 0.035 255));
+  --gradient-panel: linear-gradient(145deg, oklch(0.3 0.05 255 / 72%), oklch(0.225 0.035 255 / 68%));
+  --shadow-panel: 0 14px 34px -18px oklch(0.08 0.03 255 / 85%), inset 0 1px 0 oklch(0.9 0.03 250 / 7%);
 }
 
 @layer base {
@@ -121,16 +127,25 @@
     border-color: var(--color-border);
   }
 
+  html { background: var(--color-background); }
   body {
+    min-height: 100vh;
     background-color: var(--color-background);
+    background-image: var(--gradient-page);
+    background-attachment: fixed;
     color: var(--color-foreground);
     font-family: var(--font-sans);
   }
   h1, h2, h3 { font-family: var(--font-display); }
+  ::selection { background: var(--color-accent); color: var(--color-accent-foreground); }
 }
 
 @utility tabular { font-variant-numeric: tabular-nums; }
 @layer components {
-  .panel { @apply rounded-xl border border-border bg-card p-4; }
-
+  .panel {
+    @apply rounded-2xl border border-border bg-card p-4;
+    background-image: var(--gradient-panel);
+    box-shadow: var(--shadow-panel);
+    backdrop-filter: blur(18px) saturate(125%);
+  }
 }

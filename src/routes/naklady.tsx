@@ -64,7 +64,7 @@ function Costs() {
               <li key={cat}>
                 <button type="button" onClick={() => setFilter(filter === cat ? null : cat)} className="w-full text-left">
                   <div className="flex justify-between text-sm">
-                    <span className={cn("font-semibold", filter === cat && "text-primary")}>{cat}</span>
+                    <span className={cn("font-semibold", filter === cat && "text-secondary")}>{cat}</span>
                     <span className="tabular">{formatCurrency(sum)}</span>
                   </div>
                   <div className="mt-1 h-1.5 rounded-full bg-muted">

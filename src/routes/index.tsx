@@ -28,14 +28,22 @@ type TileProps = {
   to: "/tankovanie" | "/historia" | "/statistiky" | "/nastavenia";
   label: string;
   icon: LucideIcon;
+  tone: "fuel" | "costs" | "stats" | "settings";
   badge?: string | undefined;
 };
 
-function HomeTile({ to, label, icon: Icon, badge }: TileProps) {
+const tileTones = {
+  fuel: "border-primary/30 bg-primary/12 text-primary",
+  costs: "border-secondary/30 bg-secondary/12 text-secondary",
+  stats: "border-chart-2/30 bg-chart-2/12 text-chart-2",
+  settings: "border-chart-4/30 bg-chart-4/12 text-chart-4",
+} as const;
+
+function HomeTile({ to, label, icon: Icon, tone, badge }: TileProps) {
   return (
-    <Link to={to} className="panel relative flex min-h-36 flex-col items-center justify-center gap-3 px-3 py-5 text-center transition-colors hover:border-primary hover:bg-muted">
+    <Link to={to} className="panel group relative flex min-h-36 flex-col items-center justify-center gap-3 px-3 py-5 text-center transition duration-200 hover:-translate-y-0.5 hover:border-primary/60">
       {badge ? <span className="absolute right-3 top-3 rounded-full bg-warning/15 px-2.5 py-1 text-xs font-bold text-warning">{badge}</span> : null}
-      <span className="rounded-2xl bg-accent p-4 text-accent-foreground"><Icon className="size-9" strokeWidth={1.8} /></span>
+      <span className={cn("rounded-2xl border p-4 shadow-lg transition-transform duration-200 group-hover:scale-105", tileTones[tone])}><Icon className="size-9" strokeWidth={1.8} /></span>
       <span className="font-semibold leading-snug">{label}</span>
     </Link>
   );
@@ -60,10 +68,10 @@ function Overview() {
       <BackupBanner hasData={vehicles.length > 0} />
 
       <nav aria-label="Hlavné menu" className="mb-6 grid grid-cols-2 gap-3">
-        <HomeTile to="/tankovanie" label="Nové tankovanie" icon={Fuel} />
-        <HomeTile to="/historia" label="História a Náklady" icon={History} />
-        <HomeTile to="/statistiky" label="Štatistiky" icon={BarChart3} />
-        <HomeTile to="/nastavenia" label="Nastavenia vozidla" icon={Settings} badge={inspectionAlerts.length > 0 ? "STK/EK" : undefined} />
+        <HomeTile to="/tankovanie" label="Nové tankovanie" icon={Fuel} tone="fuel" />
+        <HomeTile to="/historia" label="História a Náklady" icon={History} tone="costs" />
+        <HomeTile to="/statistiky" label="Štatistiky" icon={BarChart3} tone="stats" />
+        <HomeTile to="/nastavenia" label="Nastavenia vozidla" icon={Settings} tone="settings" badge={inspectionAlerts.length > 0 ? "STK/EK" : undefined} />
       </nav>
 
       {selectedVehicle && summary ? (

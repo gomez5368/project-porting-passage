@@ -4,8 +4,8 @@
   "description": "Sledujte spotrebu paliva, náklady a históriu tankovaní svojho auta.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0c0f0d",
-  "theme_color": "#0c0f0d",
+  "background_color": "#17243a",
+  "theme_color": "#17243a",
   "icons": [
     {
       "src": "/icon-192.png",

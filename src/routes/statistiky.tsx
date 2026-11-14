@@ -3,6 +3,7 @@ import { EmptyVehicleState, ScreenHeader, StatCard, TrendChart, VehicleSwitcher 
 import { useCarData } from "@/context/CarDataContext";
 import { monthlyTotals } from "@/lib/monthlyTotals";
 import { formatNumber, formatShortDate, sortFillUps, summarizeVehicle } from "@/lib/fuelCalculations";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/statistiky")({
   head: () => ({
@@ -40,8 +41,8 @@ function Statistics() {
             <StatCard label="Najazdené km" value={formatNumber(summary.totalKm)} unit="km" tone="success" />
             <StatCard label="Ostatné náklady" value={formatNumber(otherCosts, 2)} unit="€" tone="warning" />
             <StatCard label="Celkom za auto" value={formatNumber(summary.totalCost + otherCosts, 2)} unit="€" tone="primary" />
-            <StatCard label="Posledná spotreba" value={lastSegment ? formatNumber(lastSegment.consumption, 1) : "—"} unit="l/100 km" tone="success" />
-            <StatCard label="Celková cena za 1 km" value={summary.totalKm > 0 ? formatNumber((summary.totalCost + otherCosts) / summary.totalKm, 3) : "—"} unit="€/km" tone="secondary" />
+            <StatCard label="Posledná spotreba" value={lastSegment ? formatNumber(lastSegment.consumption, 1) : "—"} unit="l/100 km" tone="coral" />
+            <StatCard label="Celková cena za 1 km" value={summary.totalKm > 0 ? formatNumber((summary.totalCost + otherCosts) / summary.totalKm, 3) : "—"} unit="€/km" tone="violet" />
           </div>
           {summary.averageConsumption === null ? (
             <p className="mt-3 text-sm text-muted-foreground">Priemerná spotreba sa zobrazí po dvoch tankovaniach do plnej nádrže.</p>
@@ -54,17 +55,17 @@ function Statistics() {
             points={sortFillUps(selectedFillUps).map((fillUp) => ({ label: formatShortDate(fillUp.date), value: fillUp.pricePerLiter }))}
             formatValue={(value) => `${formatNumber(value, 3)} €/l`}
             emptyText="Zatiaľ žiadne tankovania. Graf ceny sa zobrazí po prvom tankovaní." />
-          <TrendChart title="Náklady po mesiacoch (palivo + ostatné)" tone="primary"
+          <TrendChart title="Náklady po mesiacoch (palivo + ostatné)" tone="coral"
             points={months.map((m) => ({ label: `${m.month.slice(5)}/${m.month.slice(2, 4)}`, value: m.fuel + m.other }))}
             formatValue={(value) => `${formatNumber(value, 0)} €`}
             emptyText="Graf sa zobrazí po prvom zapísanom výdavku." />
           {categories.length > 0 ? (
             <section className="panel mt-4">
               <h2 className="mb-3 font-semibold">Ostatné náklady podľa kategórií</h2>
-              {categories.map(([name, sum]) => (
+              {categories.map(([name, sum], index) => (
                 <div key={name} className="mb-2">
                   <div className="flex justify-between text-sm"><span>{name}</span><span className="tabular font-semibold">{formatNumber(sum, 2)} €</span></div>
-                  <div className="mt-1 h-2 rounded-full bg-muted"><div className="h-2 rounded-full bg-secondary" style={{ width: `${(sum / maxCat) * 100}%` }} /></div>
+                  <div className="mt-1 h-2 rounded-full bg-muted"><div className={cn("h-2 rounded-full", ["bg-chart-2", "bg-chart-1", "bg-chart-3", "bg-chart-4", "bg-chart-5"][index % 5])} style={{ width: `${(sum / maxCat) * 100}%` }} /></div>
                 </div>
               ))}
             </section>
