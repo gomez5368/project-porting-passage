@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { Download, Fuel, MapPin, Pencil, Trash2, Wrench } from "lucide-react";
 import { CostForm } from "@/components/app/CostForm";
+import { ReceiptImport } from "@/components/app/ReceiptImport";
 import { buildJournal, type JournalEntry } from "@/lib/journal";
 import { formatCurrency, formatDate, formatNumber } from "@/lib/fuelCalculations";
 import { Button } from "@/components/ui/button";
@@ -67,6 +68,7 @@ function History() {
       <ScreenHeader title="História a náklady" subtitle={selectedVehicle ? `${selectedVehicle.brand} ${selectedVehicle.model} · ${selectedFillUps.length} tankovaní · ${selectedCosts.length} nákladov` : "Všetky zapísané tankovania"} />
       <HistoryCostsNav />
       <JsonBackupSection />
+      <ReceiptImport />
       {selectedVehicle ? (
         <>
           <VehicleSwitcher vehicles={vehicles} selectedId={selectedVehicle.id} onSelect={selectVehicle} />

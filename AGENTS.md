@@ -37,3 +37,4 @@ use the editor.
 - App source lives only in src/ (TanStack Start); old Bolt/Expo or Next.js files uploaded to the repo root are not part of the app and break package.json/tsconfig, so they must not be merged in.
 - Per-vehicle deadlines, oil-change settings and planned services are an optional reminders list on app state; shared status logic evaluates either date or odometer first so settings, overview and JSON backups stay consistent.
 - Offline mode uses vite-plugin-pwa (generateSW, /sw.js) registered only from src/lib/registerSW.ts, which refuses previews/dev; navigations are NetworkFirst so new versions always load online.
+- Receipt AI is opt-in and authenticated: compress photos in the browser, stream extraction through a server-only AI Gateway boundary, persist only abuse counters/terminal access blocks in Cloud, and save reviewed records to existing local car data without storing receipt photos.

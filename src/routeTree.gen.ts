@@ -17,6 +17,7 @@ import { Route as StatistikyRouteImport } from './routes/statistiky'
 import { Route as TankovanieRouteImport } from './routes/tankovanie'
 import { Route as TerminyRouteImport } from './routes/terminy'
 import { Route as VozidlaRouteImport } from './routes/vozidla'
+import { Route as ApiReceiptRouteImport } from './routes/api/receipt'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -58,6 +59,11 @@ const VozidlaRoute = VozidlaRouteImport.update({
   path: '/vozidla',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiReceiptRoute = ApiReceiptRouteImport.update({
+  id: '/api/receipt',
+  path: '/api/receipt',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -68,6 +74,7 @@ export interface FileRoutesByFullPath {
   '/tankovanie': typeof TankovanieRoute
   '/terminy': typeof TerminyRoute
   '/vozidla': typeof VozidlaRoute
+  '/api/receipt': typeof ApiReceiptRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -78,6 +85,7 @@ export interface FileRoutesByTo {
   '/tankovanie': typeof TankovanieRoute
   '/terminy': typeof TerminyRoute
   '/vozidla': typeof VozidlaRoute
+  '/api/receipt': typeof ApiReceiptRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -89,6 +97,7 @@ export interface FileRoutesById {
   '/tankovanie': typeof TankovanieRoute
   '/terminy': typeof TerminyRoute
   '/vozidla': typeof VozidlaRoute
+  '/api/receipt': typeof ApiReceiptRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -101,6 +110,7 @@ export interface FileRouteTypes {
     | '/tankovanie'
     | '/terminy'
     | '/vozidla'
+    | '/api/receipt'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -111,6 +121,7 @@ export interface FileRouteTypes {
     | '/tankovanie'
     | '/terminy'
     | '/vozidla'
+    | '/api/receipt'
   id:
     | '__root__'
     | '/'
@@ -121,6 +132,7 @@ export interface FileRouteTypes {
     | '/tankovanie'
     | '/terminy'
     | '/vozidla'
+    | '/api/receipt'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -132,6 +144,7 @@ export interface RootRouteChildren {
   TankovanieRoute: typeof TankovanieRoute
   TerminyRoute: typeof TerminyRoute
   VozidlaRoute: typeof VozidlaRoute
+  ApiReceiptRoute: typeof ApiReceiptRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -192,6 +205,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VozidlaRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/receipt': {
+      id: '/api/receipt'
+      path: '/api/receipt'
+      fullPath: '/api/receipt'
+      preLoaderRoute: typeof ApiReceiptRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -204,6 +224,7 @@ const rootRouteChildren: RootRouteChildren = {
   TankovanieRoute: TankovanieRoute,
   TerminyRoute: TerminyRoute,
   VozidlaRoute: VozidlaRoute,
+  ApiReceiptRoute: ApiReceiptRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

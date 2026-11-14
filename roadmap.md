@@ -24,3 +24,6 @@
 - [x] Overiť plánovaný servis testami a v prehliadači
 - [x] Opraviť nečitateľný rozbalený výber vozidla pri CSV a rovnaký výber kategórie nákladov
 - [x] Vysvetliť šetrné načítanie bločkov na požiadanie (zatiaľ bez implementácie)
+- [x] AI bloček: bezpečné prihlásenie, komprimovaná fotka, načítanie na požiadanie a kontrola pred uložením
+- [x] Overiť skutočné AI načítanie tankovania i údržby na skúšobných fotkách
+- [ ] Overiť celý postup po prihlásení v aplikácii — čaká na prvé prihlásenie používateľa
