@@ -22,3 +22,5 @@
 - [x] Overiť import staníc a predvyplnenie pri úprave tankovania po hlásení prázdneho políčka (393 staníc; ceruzka otvorí uloženú stanicu)
 - [x] Plánovaný servis: dátum alebo kilometre, úprava/dokončenie, upozornenie a JSON záloha
 - [x] Overiť plánovaný servis testami a v prehliadači
+- [x] Opraviť nečitateľný rozbalený výber vozidla pri CSV a rovnaký výber kategórie nákladov
+- [x] Vysvetliť šetrné načítanie bločkov na požiadanie (zatiaľ bez implementácie)

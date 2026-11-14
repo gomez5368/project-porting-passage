@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useCarData } from "@/context/CarDataContext";
 import { downloadFile } from "@/lib/downloadFile";
 import { LAST_BACKUP_KEY } from "@/lib/backupReminder";
@@ -122,10 +123,13 @@ export function JsonBackupSection() {
         <div className="mt-4 grid gap-3 sm:grid-cols-3">
           <div className="space-y-2">
             <Label htmlFor="csv-vehicle">Vozidlo</Label>
-            <select id="csv-vehicle" value={csvVehicleId} onChange={(e) => setCsvVehicleId(e.target.value)} disabled={!isReady || busy} className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm text-foreground shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50">
-              <option value="all">Všetky vozidlá</option>
-              {vehicles.map((vehicle) => <option key={vehicle.id} value={vehicle.id}>{vehicle.brand} {vehicle.model}</option>)}
-            </select>
+            <Select value={csvVehicleId} onValueChange={setCsvVehicleId} disabled={!isReady || busy}>
+              <SelectTrigger id="csv-vehicle" className="bg-popover text-popover-foreground"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Všetky vozidlá</SelectItem>
+                {vehicles.map((vehicle) => <SelectItem key={vehicle.id} value={vehicle.id}>{vehicle.brand} {vehicle.model}</SelectItem>)}
+              </SelectContent>
+            </Select>
           </div>
           <div className="space-y-2">
             <Label htmlFor="csv-date-from">Dátum od</Label>

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FormField } from "@/components/app/ui";
 import { parseDecimal } from "@/lib/parseDecimal";
 import { COST_CATEGORIES, type Cost } from "@/types/fuel";
@@ -39,13 +40,13 @@ export function CostForm({ initial, onSubmit }: { initial?: Cost; onSubmit: (v: 
         <FormField label="Dátum" type="date" value={date} onChange={setDate} />
         <FormField label="Suma" value={amount} onChange={setAmount} inputMode="decimal" placeholder="napr. 120,50" suffix="€" />
       </div>
-      <label className="block">
-        <span className="mb-1.5 block text-sm font-semibold text-muted-foreground">Kategória</span>
-        <select value={category} onChange={(e) => setCategory(e.target.value)}
-          className="h-11 w-full rounded-lg border border-border bg-muted px-3 outline-none focus:ring-2 focus:ring-ring">
-          {categories.map((c) => <option key={c}>{c}</option>)}
-        </select>
-      </label>
+      <div>
+        <label htmlFor="cost-category" className="mb-1.5 block text-sm font-semibold text-muted-foreground">Kategória</label>
+        <Select value={category} onValueChange={setCategory}>
+          <SelectTrigger id="cost-category" className="h-11 bg-popover text-popover-foreground"><SelectValue /></SelectTrigger>
+          <SelectContent>{categories.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
+        </Select>
+      </div>
       <FormField label="Stav tachometra" value={odo} onChange={setOdo} inputMode="numeric" placeholder="napr. 145200" suffix="km" hint="Voliteľné – podľa neho sa radí denník." />
       <FormField label="Poznámka" value={note} onChange={setNote} placeholder="napr. výmena brzdových platničiek" />
       {error ? <p className="text-sm text-destructive">{error}</p> : null}
