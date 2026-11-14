@@ -15,6 +15,7 @@ const stateSchema = z.object({
     totalCost: nonNegative, pricePerLiter: nonNegative, fuelType: z.enum(FUEL_TYPES), isFullTank: z.boolean(),
     fuelGrade: z.enum(FUEL_GRADES).optional(),
     tankLevelPercent: z.number().finite().min(0).max(100).optional(),
+    station: z.string().trim().min(1).max(200).optional(),
   })),
   costs: z.array(z.object({
     id, vehicleId: id, date, amount: nonNegative, category: z.string().min(1), note: z.string(), odometer: nonNegative.nullable(),

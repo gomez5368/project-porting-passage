@@ -7,7 +7,7 @@ import type { AppState } from "@/types/fuel";
 const car = { source: 1, pk: 1, name: "ŠKODA Fabia", year: 2004, fuel: "benzín", startOdometer: 1000 };
 const day = (d: number) => Date.UTC(2025, 0, d, 12) / 1000;
 const gas = (d: number, odometer: number, volume: number, partial: number, tankStatus: number | null) =>
-  ({ carSource: 1, carPk: 1, odometer, price: volume * 1.5, volume, timestamp: day(d), partial, tankStatus });
+  ({ carSource: 1, carPk: 1, odometer, price: volume * 1.5, volume, timestamp: day(d), partial, tankStatus, station: "Slovnaft, Vajanského, Senica" });
 
 // Partial flag says "full" (0) on every row; only the tank percentages tell the truth.
 const backup = convertBackup([car], [gas(1, 1000, 40, 0, 100), gas(2, 1200, 10, 0, 75), gas(3, 1500, 20, 0, 100)]);
@@ -22,7 +22,7 @@ const id = () => `id${++n}`;
 // The same fill-ups as already saved by an older import, before percentages were read.
 function savedWithoutPercents(): AppState {
   const { state } = mergeImport({ vehicles: [], fillUps: [], costs: [], selectedVehicleId: null }, items, id);
-  return { ...state, fillUps: state.fillUps.map(({ tankLevelPercent: _drop, ...f }) => ({ ...f, isFullTank: true })) };
+  return { ...state, fillUps: state.fillUps.map(({ tankLevelPercent: _drop, station: _station, ...f }) => ({ ...f, isFullTank: true })) };
 }
 
 describe("db3 tank percentage import", () => {
@@ -30,6 +30,10 @@ describe("db3 tank percentage import", () => {
     const fills = backup.vehicles[0]!.fillUps;
     expect(fills.map((f) => f.tankLevelPercent)).toEqual([100, 75, 100]);
     expect(fills.map((f) => f.isFullTank)).toEqual([true, false, true]);
+  });
+
+  it("reads the filling station from the backup row", () => {
+    expect(backup.vehicles[0]!.fillUps[0]?.station).toBe("Slovnaft, Vajanského, Senica");
   });
 
   it("fills percentages into existing fill-ups without adding duplicates", () => {
@@ -41,6 +45,23 @@ describe("db3 tank percentage import", () => {
     expect(stats[0]?.newFillUps).toHaveLength(0);
     expect(state.fillUps.map((f) => f.id)).toEqual(before.fillUps.map((f) => f.id));
     expect(state.fillUps.map((f) => f.tankLevelPercent)).toEqual([100, 75, 100]);
+  });
+
+  it("fills missing stations into existing fill-ups without duplicates", () => {
+    const before = savedWithoutPercents();
+    const { state, stats } = mergeImport(before, items, id);
+    expect(state.fillUps).toHaveLength(3);
+    expect(state.fillUps.every((f) => f.station === "Slovnaft, Vajanského, Senica")).toBe(true);
+    expect(stats[0]?.stationsFilled).toBe(3);
+    expect(state.fillUps.map((f) => f.id)).toEqual(before.fillUps.map((f) => f.id));
+  });
+
+  it("does not overwrite a station the user already set", () => {
+    const before = savedWithoutPercents();
+    before.fillUps[0] = { ...before.fillUps[0]!, station: "Moja stanica" };
+    const { state, stats } = mergeImport(before, items, id);
+    expect(state.fillUps[0]?.station).toBe("Moja stanica");
+    expect(stats[0]?.stationsFilled).toBe(2);
   });
 
   it("does not overwrite a percentage the user already set", () => {
@@ -67,6 +88,7 @@ describe("db3 tank percentage import", () => {
     const twice = mergeImport(once, items, id);
     expect(twice.state.fillUps).toEqual(once.fillUps);
     expect(twice.stats[0]?.percentsFilled).toBe(0);
+    expect(twice.stats[0]?.stationsFilled).toBe(0);
   });
 });
 

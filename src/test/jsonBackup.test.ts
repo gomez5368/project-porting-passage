@@ -7,7 +7,7 @@ const vehicle = { id: "car", brand: "Škoda", model: "Fabia", year: 2004, initia
 const state: AppState = {
   vehicles: [vehicle], selectedVehicleId: "car",
   fillUps: [
-    { id: "first", vehicleId: "car", date: "2026-01-01", odometer: 1000, liters: 40, totalCost: 60, pricePerLiter: 1.5, fuelType: "Benzín", isFullTank: true },
+    { id: "first", vehicleId: "car", date: "2026-01-01", odometer: 1000, liters: 40, totalCost: 60, pricePerLiter: 1.5, fuelType: "Benzín", isFullTank: true, station: "Slovnaft, Vajanského, Senica" },
     { id: "second", vehicleId: "car", date: "2026-01-10", odometer: 1500, liters: 35, totalCost: 52.5, pricePerLiter: 1.5, fuelType: "Benzín", isFullTank: true },
   ],
   costs: [{ id: "cost", vehicleId: "car", date: "2026-01-02", amount: 20, category: "Parkovanie", note: "Centrum", odometer: null }],
@@ -16,6 +16,9 @@ const state: AppState = {
 describe("JSON backup", () => {
   it("exports and restores every vehicle, fill-up, cost and selection", () => {
     expect(parseJsonBackup(serializeJsonBackup(state))).toEqual(state);
+  });
+  it("keeps the filling station in a complete JSON round trip", () => {
+    expect(parseJsonBackup(serializeJsonBackup(state)).fillUps[0]?.station).toBe("Slovnaft, Vajanského, Senica");
   });
   it("accepts an empty backup to restore an empty history", () => {
     const empty = { vehicles: [], fillUps: [], costs: [], selectedVehicleId: null };

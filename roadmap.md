@@ -18,3 +18,4 @@
 - [x] Midnight & Warm Amber: polnočné pozadie, sklenené karty a farebné sekcie
 - [x] Nová jantárová ikona vo všetkých veľkostiach a zladený manifest
 - [x] Overiť nový vzhľad na mobile a desktope, testy a zostavenie
+- [x] Čerpacia stanica pri tankovaní: formulár, denník, JSON/CSV a doplnenie z .db3 bez duplicít

@@ -36,6 +36,8 @@ export type FillUp = {
   fuelGrade?: FuelGrade | undefined;
   isFullTank: boolean;
   tankLevelPercent?: number | undefined;
+  /** Optional station name and address, imported from Spotreba or entered manually. */
+  station?: string | undefined;
 };
 
 export const COST_CATEGORIES = ['Údržba', 'Výmena oleja', 'Pneumatiky', 'Poistka', 'STK', 'Dane a poplatky', 'Diaľnica', 'Parkovanie', 'Ostatné'] as const;

@@ -3,7 +3,7 @@
 import type { Cost, FillUp, FuelType, Vehicle } from "@/types/fuel";
 
 export type BackupCarRow = { source: number; pk: number; name: string; year: number | null; fuel: string | null; startOdometer: number | null; tankCapacity?: number | null };
-export type BackupGasRow = { carSource: number; carPk: number; odometer: number; price: number; volume: number; timestamp: number; partial: number; tankStatus?: number | null };
+export type BackupGasRow = { carSource: number; carPk: number; odometer: number; price: number; volume: number; timestamp: number; partial: number; tankStatus?: number | null; station?: string | null };
 
 export type BackupCostRow = { carSource: number; carPk: number; price: number; timestamp: number; type: string | null; notes: string | null; odometer: number | null };
 export type BackupVehicle = Omit<Vehicle, "id"> & { fillUps: Omit<FillUp, "id" | "vehicleId">[]; costs: Omit<Cost, "id" | "vehicleId">[]; skipped: number };
@@ -27,6 +27,12 @@ export function splitCarName(name: string): { brand: string; model: string } {
 function isoDate(unixSeconds: number): string {
   const d = new Date(unixSeconds * 1000);
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+function stationLabel(name: unknown, address: unknown): string | null {
+  const clean = (value: unknown) => String(value ?? "").replace(/\s+/g, " ").trim();
+  const station = [clean(name), clean(address)].filter(Boolean).join(", ");
+  return station ? station.slice(0, 200) : null;
 }
 
 /** Tank level after the fill-up (0–100 %). When present it decides "full" (only 100 %); otherwise the partial flag is used. */
@@ -62,12 +68,14 @@ export function convertBackup(cars: BackupCarRow[], gases: BackupGasRow[], costR
     if (!(g.volume > 0) || !(g.price > 0) || !(g.odometer >= v.initialOdometer) || !(g.timestamp > 0)) { v.skipped++; continue; }
     const liters = Math.round(g.volume * 100) / 100;
     const totalCost = Math.round(g.price * 100) / 100;
+    const station = stationLabel(g.station, null);
     v.fillUps.push({
       date: isoDate(g.timestamp),
       odometer: Math.round(g.odometer),
       liters, totalCost,
       pricePerLiter: Math.round((totalCost / liters) * 1000) / 1000,
       fuelType: fuelByKey.get(key) ?? "Benzín",
+      ...(station ? { station } : {}),
       ...tankFields(g),
     });
   }
@@ -111,10 +119,26 @@ export async function readSpotrebaBackup(file: File): Promise<BackupResult> {
     }));
     const gasColumns = new Set((db.exec("PRAGMA table_info(Gases)")[0]?.values ?? []).map((r) => String(r[1])));
     const tankColumn = gasColumns.has("Z_GAS_TANK_STATUS") ? "Z_GAS_TANK_STATUS" : "NULL";
-    const gases = rows(`SELECT ZCAR_SOURCE, Z1CONSUMPIONS, ZODOMETER, ZPRICE, ZVOLUME, ZTIMESTAMP, ZPARTIALFILLUP, ${tankColumn} FROM Gases`).map((r) => ({
+    const stationColumn = gasColumns.has("Z_GAS_STATION") ? "Z_GAS_STATION" : "NULL";
+    const stationNames = new Map<number, string>();
+    // The backup stores either a catalogue station ID or a user's own station ID.
+    if (tables.has("GasStations")) {
+      for (const r of rows("SELECT ID, Name, Locality FROM GasStations")) {
+        const label = stationLabel(r[1], r[2]);
+        if (label) stationNames.set(Number(r[0]), label);
+      }
+    }
+    if (tables.has("UserGasStations")) {
+      for (const r of rows("SELECT Z_PK, ZNAME, ZADRESS FROM UserGasStations")) {
+        const label = stationLabel(r[1], r[2]);
+        if (label) stationNames.set(Number(r[0]), label);
+      }
+    }
+    const gases = rows(`SELECT ZCAR_SOURCE, Z1CONSUMPIONS, ZODOMETER, ZPRICE, ZVOLUME, ZTIMESTAMP, ZPARTIALFILLUP, ${tankColumn}, ${stationColumn} FROM Gases`).map((r) => ({
       carSource: Number(r[0]), carPk: Number(r[1]), odometer: Number(r[2]), price: Number(r[3]),
       volume: Number(r[4]), timestamp: Number(r[5]), partial: Number(r[6] ?? 0),
       tankStatus: r[7] == null ? null : Number(r[7]),
+      station: r[8] == null ? null : stationNames.get(Number(r[8])) ?? null,
     }));
     const costs = tables.has("Costs")
       ? rows("SELECT ZCAR_SOURCE, Z1COSTS, ZPRICE, ZTIMESTAMP, ZTYPE, ZNOTES, zODOMETER FROM Costs").map((r) => ({

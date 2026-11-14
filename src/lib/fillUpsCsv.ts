@@ -9,10 +9,10 @@ export function serializeFillUpsCsv(fillUps: FillUp[], vehicles: Vehicle[]): str
   const names = new Map(vehicles.map((v) => [v.id, `${v.brand} ${v.model}`]));
   const number = (value: number, digits: number) => value.toFixed(digits).replace(".", ",");
   const rows = sortFillUps(fillUps).map((f) => [
-    f.date, names.get(f.vehicleId) ?? "Neznáme vozidlo", f.fuelType,
+    f.date, names.get(f.vehicleId) ?? "Neznáme vozidlo", f.station ?? "", f.fuelType,
     f.fuelGrade === "premium" ? "Plus / Premium" : f.fuelGrade === "normal" ? "Normal" : "", String(f.odometer),
     number(f.liters, 2), number(f.totalCost, 2), number(f.pricePerLiter, 3),
     isFullTankFillUp(f) ? "Áno" : "Nie", f.tankLevelPercent === undefined ? "" : String(f.tankLevelPercent).replace(".", ","),
   ].map(cell).join(";"));
-  return `\uFEFF${["Dátum;Vozidlo;Palivo;Variant paliva;Tachometer (km);Litre;Suma (€);Cena za liter (€);Plná nádrž;Nádrž po natankovaní (%)", ...rows].join("\r\n")}\r\n`;
+  return `\uFEFF${["Dátum;Vozidlo;Čerpacia stanica;Palivo;Variant paliva;Tachometer (km);Litre;Suma (€);Cena za liter (€);Plná nádrž;Nádrž po natankovaní (%)", ...rows].join("\r\n")}\r\n`;
 }

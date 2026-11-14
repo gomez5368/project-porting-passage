@@ -1,5 +1,5 @@
 // Merges vehicles, fill-ups and costs read from a Spotreba .db3 backup into the saved state.
-// Matching records are never duplicated; existing fill-ups without a tank percentage receive it from the backup.
+// Matching records are never duplicated; missing tank percentages and stations are filled from the backup.
 import { fillUpKey } from '@/lib/importSpotreba';
 import type { AppState, Cost, FillUp, Vehicle } from '@/types/fuel';
 
@@ -13,6 +13,7 @@ export type ImportItemStats = {
   duplicateFillUps: number;
   newCosts: NewCost[];
   percentsFilled: number;
+  stationsFilled: number;
 };
 
 export const costKey = (c: Pick<Cost, 'date' | 'amount' | 'category'>) => `${c.date}|${c.amount.toFixed(2)}|${c.category}`;
@@ -44,17 +45,26 @@ export function mergeImport(
       if (f.vehicleId === target.id && !indexByKey.has(fillUpKey(f))) indexByKey.set(fillUpKey(f), i);
     });
 
-    const itemStats: ImportItemStats = { existing: !!existing, newFillUps: [], duplicateFillUps: 0, newCosts: [], percentsFilled: 0 };
+    const itemStats: ImportItemStats = { existing: !!existing, newFillUps: [], duplicateFillUps: 0, newCosts: [], percentsFilled: 0, stationsFilled: 0 };
     for (const f of item.fillUps) {
       const key = fillUpKey(f);
       const index = indexByKey.get(key);
       if (index !== undefined) {
         itemStats.duplicateFillUps++;
         const saved = fillUps[index];
-        // Only fill a missing percentage; never overwrite a value the user entered or edited.
-        if (saved && saved.tankLevelPercent === undefined && f.tankLevelPercent !== undefined) {
-          fillUps[index] = { ...saved, tankLevelPercent: f.tankLevelPercent };
-          itemStats.percentsFilled++;
+        // Only fill missing imported details; never overwrite values the user entered or edited.
+        if (saved) {
+          const fillPercent = saved.tankLevelPercent === undefined && f.tankLevelPercent !== undefined;
+          const fillStation = !saved.station?.trim() && !!f.station?.trim();
+          if (fillPercent || fillStation) {
+            fillUps[index] = {
+              ...saved,
+              ...(fillPercent ? { tankLevelPercent: f.tankLevelPercent } : {}),
+              ...(fillStation ? { station: f.station } : {}),
+            };
+            if (fillPercent) itemStats.percentsFilled++;
+            if (fillStation) itemStats.stationsFilled++;
+          }
         }
         continue;
       }

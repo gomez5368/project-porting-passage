@@ -31,6 +31,7 @@ export function FillUpForm({ latestOdometer, vehicleFuelType, initialFillUp, onS
   const [fuelGrade, setFuelGrade] = useState<FuelGrade>(initialFillUp?.fuelGrade ?? "normal");
   const [full, setFull] = useState<FullTank>(initialFillUp && isFullTankFillUp(initialFillUp) ? "yes" : "no");
   const [tankLevel, setTankLevel] = useState(() => initialFillUp?.tankLevelPercent !== undefined ? String(initialFillUp.tankLevelPercent) : "");
+  const [station, setStation] = useState(() => initialFillUp?.station ?? "");
   const [errors, setErrors] = useState<Errors>({});
   const [saved, setSaved] = useState<string | null>(null);
 
@@ -64,16 +65,18 @@ export function FillUpForm({ latestOdometer, vehicleFuelType, initialFillUp, onS
       fuelType, isFullTank: percent === undefined ? full === "yes" : percent === 100,
       ...(isPremiumEligible(fuelType) ? { fuelGrade } : {}),
       ...(percent === undefined ? {} : { tankLevelPercent: percent }),
+      ...(station.trim() ? { station: station.trim() } : {}),
     });
     if (initialFillUp) return;
     setOdometer(""); setLiters(""); setPriceValue("");
-    setTankLevel(""); setFull("no");
+    setTankLevel(""); setFull("no"); setStation("");
     setSaved("Tankovanie bolo uložené.");
   };
 
   return (
     <form onSubmit={submit} className={initialFillUp ? "space-y-5" : "panel space-y-5"}>
       <FormField label="Dátum tankovania" type="date" value={date} onChange={setDate} placeholder="RRRR-MM-DD" error={errors.date} />
+      <FormField label="Čerpacia stanica (nepovinné)" value={station} onChange={(value) => setStation(value.slice(0, 200))} placeholder="napr. Slovnaft, Vajanského, Senica" />
       <FormField label="Aktuálny stav tachometra" value={odometer} onChange={setOdometer} inputMode="numeric"
         placeholder={`napr. ${formatNumber(latestOdometer + 1)}`} suffix="km" error={errors.odometer}
         hint={initialFillUp ? undefined : `Posledný zapísaný stav: ${formatNumber(latestOdometer)} km`} />

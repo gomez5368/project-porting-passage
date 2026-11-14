@@ -1,7 +1,7 @@
 import type { Cost, FillUp, FuelGrade, Vehicle } from "@/types/fuel";
 
 /** Slovak Excel: semicolon separated, decimal comma, UTF-8 BOM. */
-const HEADER = "Dátum;Vozidlo;Kategória;Typ paliva (Normal/Premium);Stav tachometra (km);Množstvo (l);Percentá nádrže (%);Celková suma (€);Poznámka";
+const HEADER = "Dátum;Vozidlo;Čerpacia stanica;Kategória;Typ paliva (Normal/Premium);Stav tachometra (km);Množstvo (l);Percentá nádrže (%);Celková suma (€);Poznámka";
 
 function cell(value: string): string {
   return /[;"\n\r]/.test(value) ? `"${value.replace(/"/g, '""')}"` : value;
@@ -54,6 +54,7 @@ export function serializeJournalCsv(fillUps: FillUp[], costs: Cost[], vehicles: 
     cells: [
       f.date,
       name(f.vehicleId),
+      f.station ?? "",
       "Palivo",
       fuelGradeLabel(f.fuelGrade),
       String(f.odometer),
@@ -70,6 +71,7 @@ export function serializeJournalCsv(fillUps: FillUp[], costs: Cost[], vehicles: 
     cells: [
       c.date,
       name(c.vehicleId),
+      "",
       c.category,
       "",
       c.odometer === null ? "" : String(c.odometer),

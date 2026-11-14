@@ -28,7 +28,7 @@ describe("tank level", () => {
     for (const percent of [-1, 101]) expect(() => serializeJsonBackup({ ...state, fillUps: [fill("a", 1000, 40, percent)] })).toThrow();
   });
   it("exports tank history with vehicle, prices, liters and percentage", () => {
-    expect(serializeFillUpsCsv(state.fillUps, state.vehicles)).toContain("2026-11-09;Škoda Fabia;Benzín;;1000;40,00;30,00;1,500;Nie;75");
+    expect(serializeFillUpsCsv(state.fillUps, state.vehicles)).toContain("2026-11-09;Škoda Fabia;;Benzín;;1000;40,00;30,00;1,500;Nie;75");
   });
   it("keeps old full-tank records working without a percentage", () => {
     expect(isFullTankFillUp({ isFullTank: true })).toBe(true);

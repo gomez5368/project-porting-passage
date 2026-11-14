@@ -38,18 +38,20 @@ export function BackupImportCard() {
   const stats = result ? mergeImport({ vehicles, fillUps, costs, selectedVehicleId }, items, () => "preview").stats : [];
   const preview = (result?.vehicles ?? []).map((v, i) => {
     const s = stats[i]!;
-    return { v, existing: s.existing, fresh: s.newFillUps, freshCosts: s.newCosts, dupes: s.duplicateFillUps, percents: s.percentsFilled };
+    return { v, existing: s.existing, fresh: s.newFillUps, freshCosts: s.newCosts, dupes: s.duplicateFillUps, percents: s.percentsFilled, stations: s.stationsFilled };
   });
   const totalNew = preview.reduce((s, p) => s + p.fresh.length, 0);
   const totalCosts = preview.reduce((s, p) => s + p.freshCosts.length, 0);
   const totalPercents = preview.reduce((s, p) => s + p.percents, 0);
+  const totalStations = preview.reduce((s, p) => s + p.stations, 0);
   const newCars = preview.filter((p) => !p.existing).length;
-  const hasChanges = totalNew > 0 || newCars > 0 || totalCosts > 0 || totalPercents > 0;
+  const hasChanges = totalNew > 0 || newCars > 0 || totalCosts > 0 || totalPercents > 0 || totalStations > 0;
 
   const save = () => {
     importVehicles(items);
     setDone(`Importované: ${newCars} vozidiel, ${totalNew} tankovaní, ${totalCosts} nákladov` +
-      (totalPercents > 0 ? `; doplnené percentá nádrže pri ${totalPercents} tankovaniach.` : "."));
+      (totalPercents > 0 ? `; doplnené percentá nádrže pri ${totalPercents} tankovaniach` : "") +
+      (totalStations > 0 ? `; doplnené čerpacie stanice pri ${totalStations} tankovaniach.` : "."));
     close();
   };
 
@@ -81,9 +83,10 @@ export function BackupImportCard() {
               <div className="rounded-lg bg-accent p-3 text-sm">
                 <p className="font-semibold text-accent-foreground">Nové: {newCars} vozidiel · {totalNew} tankovaní · {totalCosts} nákladov</p>
                 {totalPercents > 0 ? <p className="font-semibold text-accent-foreground">Doplníme percentá nádrže k {totalPercents} už uloženým tankovaniam</p> : null}
+                {totalStations > 0 ? <p className="font-semibold text-accent-foreground">Doplníme čerpacie stanice k {totalStations} už uloženým tankovaniam</p> : null}
                 {result.orphanFillUps > 0 ? <p>Tankovania bez priradeného auta (preskočíme): {result.orphanFillUps}</p> : null}
               </div>
-              {preview.map(({ v, existing, fresh, freshCosts, dupes, percents }) => (
+              {preview.map(({ v, existing, fresh, freshCosts, dupes, percents, stations }) => (
                 <div key={`${v.brand}-${v.model}-${v.year}`} className="rounded-lg border border-border p-3 text-sm">
                   <div className="flex items-center justify-between gap-2">
                     <p className="font-semibold">{v.brand} {v.model}</p>
@@ -96,6 +99,7 @@ export function BackupImportCard() {
                     {dupes > 0 ? ` · už uložených (nepridáme znova): ${dupes}` : ""}
                     {v.skipped > 0 ? ` · chybných (preskočíme): ${v.skipped}` : ""}</p>
                   {percents > 0 ? <p>Doplnené percentá nádrže: <b>{percents}</b></p> : null}
+                  {stations > 0 ? <p>Doplnené čerpacie stanice: <b>{stations}</b></p> : null}
                   <p>Nových nákladov: <b>{freshCosts.length}</b>
                     {freshCosts.length > 0 ? ` · spolu ${formatCurrency(freshCosts.reduce((s, c) => s + c.amount, 0))}` : ""}</p>
                   {fresh.length > 0 ? (
@@ -103,7 +107,7 @@ export function BackupImportCard() {
                       {fresh.slice(-5).reverse().map((f, i) => (
                         <li key={i} className="flex justify-between gap-2 px-2 py-1.5">
                           <span>{formatDate(f.date)}</span>
-                          <span className="tabular text-muted-foreground">{formatNumber(f.odometer)} km · {formatNumber(f.liters, 2)} l · {formatCurrency(f.totalCost)}</span>
+                          <span className="tabular text-right text-muted-foreground">{formatNumber(f.odometer)} km · {formatNumber(f.liters, 2)} l · {formatCurrency(f.totalCost)}{f.station ? <span className="block text-xs">{f.station}</span> : null}</span>
                         </li>
                       ))}
                     </ul>
@@ -112,7 +116,7 @@ export function BackupImportCard() {
                 </div>
               ))}
               <Button className="w-full" size="lg" onClick={save} disabled={!hasChanges}>
-                {!hasChanges ? "Všetko je už uložené" : totalNew > 0 || totalCosts > 0 ? `Importovať ${totalNew} tankovaní a ${totalCosts} nákladov` : `Doplniť percentá k ${totalPercents} tankovaniam`}
+                {!hasChanges ? "Všetko je už uložené" : totalNew > 0 || totalCosts > 0 ? `Importovať ${totalNew} tankovaní a ${totalCosts} nákladov` : "Doplniť chýbajúce údaje"}
               </Button>
             </div>
           ) : null}

@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { Download, Fuel, Pencil, Trash2, Wrench } from "lucide-react";
+import { Download, Fuel, MapPin, Pencil, Trash2, Wrench } from "lucide-react";
 import { CostForm } from "@/components/app/CostForm";
 import { buildJournal, type JournalEntry } from "@/lib/journal";
 import { formatCurrency, formatDate, formatNumber } from "@/lib/fuelCalculations";
@@ -59,7 +59,7 @@ function History() {
   const [query, setQuery] = useState("");
   const q = query.trim().toLowerCase();
   const filtered = newest.filter((e) => (!year || e.date.startsWith(year)) && (kind === "all" || e.kind === kind)
-    && (!q || (e.kind === "fuel" ? "palivo" : `${e.cost.category} ${e.cost.note}`).toLowerCase().includes(q)));
+    && (!q || (e.kind === "fuel" ? `palivo ${e.fillUp.station ?? ""}` : `${e.cost.category} ${e.cost.note}`).toLowerCase().includes(q)));
   const shown = filtered.slice(0, visible);
   const pickYear = (y: string | null) => { setYear(y); setVisible(PAGE); };
   return (
@@ -81,7 +81,7 @@ function History() {
           <div className="mb-3 flex flex-wrap gap-2">
             {(["all", "fuel", "cost"] as const).map((k) => <FilterChip key={k} label={{ all: "Všetko", fuel: "Palivo", cost: "Ostatné náklady" }[k]} active={kind === k} onClick={() => { setKind(k); setVisible(PAGE); }} />)}
           </div>
-          <input type="search" value={query} onChange={(e) => { setQuery(e.target.value); setVisible(PAGE); }} placeholder="Hľadať v kategórii alebo poznámke…"
+          <input type="search" value={query} onChange={(e) => { setQuery(e.target.value); setVisible(PAGE); }} placeholder="Hľadať stanicu, kategóriu alebo poznámku…"
             aria-label="Hľadať v denníku" className="mb-4 w-full rounded-lg border border-border bg-card px-3 py-2 text-sm" />
           {years.length > 1 ? (
             <div className="mb-4 flex flex-wrap gap-2">
@@ -145,6 +145,7 @@ function JournalRow({ entry, consumption, confirming, onConfirm, onEdit, onDelet
           <span className="text-sm text-muted-foreground">{formatDate(entry.date)}</span>
         </div>
         <p className="tabular mt-1.5 text-lg font-bold">{entry.odometer !== null ? `${formatNumber(entry.odometer)} km` : "bez km"}</p>
+        {fuel && entry.fillUp.station ? <p className="mt-1 flex items-start gap-1.5 text-sm font-medium"><MapPin className="mt-0.5 size-4 shrink-0 text-primary" /><span>{entry.fillUp.station}</span></p> : null}
         <p className="text-sm text-muted-foreground">
           {fuel
             ? `${formatNumber(entry.fillUp.liters, 2)} l · ${formatNumber(entry.fillUp.pricePerLiter, 3)} €/l${entry.fillUp.tankLevelPercent !== undefined ? ` · nádrž ${formatNumber(entry.fillUp.tankLevelPercent, 0)} %` : ""}${consumption !== null ? ` · ${formatNumber(consumption, 1)} l/100 km` : ""}`

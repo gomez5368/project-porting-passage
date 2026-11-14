@@ -34,5 +34,6 @@ describe("vehicle fuel types", () => {
   it("exports the Normal/Premium variant in the fill-up CSV", () => {
     expect(serializeFillUpsCsv(state.fillUps, state.vehicles)).toContain("Nafta;Plus / Premium;1200");
     expect(serializeFillUpsCsv([{ ...fillUp, fuelGrade: "normal" }], state.vehicles)).toContain("Nafta;Normal;1200");
+    expect(serializeFillUpsCsv([{ ...fillUp, station: "Shell, Častkov" }], state.vehicles)).toContain("Škoda Octavia;Shell, Častkov;Nafta");
   });
 });
