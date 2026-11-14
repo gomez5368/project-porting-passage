@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { DatabaseBackup, Download, Upload } from "lucide-react";
+import { DatabaseBackup, Download, FileSpreadsheet, Upload } from "lucide-react";
 import { BackupSummaryCard } from "@/components/app/BackupSummaryCard";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -7,6 +7,7 @@ import { useCarData } from "@/context/CarDataContext";
 import { downloadFile } from "@/lib/downloadFile";
 import { LAST_BACKUP_KEY } from "@/lib/backupReminder";
 import { parseJsonBackup, serializeJsonBackup } from "@/lib/jsonBackup";
+import { serializeJournalCsv } from "@/lib/journalCsv";
 import type { AppState } from "@/types/fuel";
 
 export function JsonBackupSection() {
@@ -26,6 +27,15 @@ export function JsonBackupSection() {
       try { localStorage.setItem(LAST_BACKUP_KEY, new Date().toISOString()); } catch { /* ignore */ }
     } catch {
       setError("Zálohu sa nepodarilo vytvoriť. Údaje zostali nezmenené.");
+    }
+  };
+  const exportCsv = () => {
+    setError(null); setMessage(null); setLastImported(null);
+    try {
+      const csv = serializeJournalCsv(fillUps, costs, vehicles);
+      downloadFile(new Blob([csv], { type: "text/csv;charset=utf-8" }), "spotreba_export.csv");
+    } catch {
+      setError("Export do CSV sa nepodaril. Údaje zostali nezmenené.");
     }
   };
   const readFile = async (file: File | undefined) => {
@@ -60,12 +70,13 @@ export function JsonBackupSection() {
         <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/15 text-primary"><DatabaseBackup className="size-5" aria-hidden="true" /></span>
         <div>
           <h2 id="backup-heading" className="font-semibold">Záloha a obnova dát</h2>
-          <p className="text-sm text-muted-foreground">Čitateľný JSON súbor, ktorý otvoríte aj v Poznámkovom bloku.</p>
+          <p className="text-sm text-muted-foreground">Čitateľný JSON súbor, ktorý otvoríte aj v Poznámkovom bloku. Excel dostane všetky záznamy v CSV.</p>
         </div>
       </div>
       <div className="flex flex-col gap-2 sm:flex-row">
         <Button variant="outline" className="min-w-0 sm:flex-1" onClick={exportData} disabled={!isReady || busy}><Download /> Exportovať dáta (JSON)</Button>
         <Button variant="outline" className="min-w-0 sm:flex-1" onClick={() => input.current?.click()} disabled={!isReady || busy}><Upload /> {busy ? "Čítam zálohu…" : "Importovať dáta (JSON)"}</Button>
+        <Button variant="outline" className="min-w-0 sm:flex-1" onClick={exportCsv} disabled={!isReady || busy}><FileSpreadsheet /> Exportovať do Excelu (CSV)</Button>
       </div>
       <input ref={input} type="file" accept=".json,application/json" className="sr-only" aria-label="JSON záloha" onChange={(e) => void readFile(e.target.files?.[0])} />
       {isReady ? <BackupSummaryCard data={lastImported ?? { vehicles, fillUps, costs }} source={lastImported ? "imported" : "current"} /> : null}
