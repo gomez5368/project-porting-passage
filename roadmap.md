@@ -12,3 +12,5 @@
 - [x] Spoločné nastavenia vozidla, paliva a servisných termínov s odznakom STK/EK
 - [x] Variant Normal/Premium pri tankovaní, v úpravách, histórii a JSON zálohe
 - [x] Overiť hlavné mobilné toky v prehliadači
+- [x] CSV export s výberom vozidla a obdobia od–do
+- [x] CSV export split: Všetko / Len palivo / Len ostatné náklady + overenie v prehliadači
