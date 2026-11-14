@@ -12,6 +12,8 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as HistoriaRouteImport } from './routes/historia'
 import { Route as NakladyRouteImport } from './routes/naklady'
+import { Route as NastaveniaRouteImport } from './routes/nastavenia'
+import { Route as StatistikyRouteImport } from './routes/statistiky'
 import { Route as TankovanieRouteImport } from './routes/tankovanie'
 import { Route as TerminyRouteImport } from './routes/terminy'
 import { Route as VozidlaRouteImport } from './routes/vozidla'
@@ -29,6 +31,16 @@ const HistoriaRoute = HistoriaRouteImport.update({
 const NakladyRoute = NakladyRouteImport.update({
   id: '/naklady',
   path: '/naklady',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NastaveniaRoute = NastaveniaRouteImport.update({
+  id: '/nastavenia',
+  path: '/nastavenia',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StatistikyRoute = StatistikyRouteImport.update({
+  id: '/statistiky',
+  path: '/statistiky',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TankovanieRoute = TankovanieRouteImport.update({
@@ -51,6 +63,8 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/historia': typeof HistoriaRoute
   '/naklady': typeof NakladyRoute
+  '/nastavenia': typeof NastaveniaRoute
+  '/statistiky': typeof StatistikyRoute
   '/tankovanie': typeof TankovanieRoute
   '/terminy': typeof TerminyRoute
   '/vozidla': typeof VozidlaRoute
@@ -59,6 +73,8 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/historia': typeof HistoriaRoute
   '/naklady': typeof NakladyRoute
+  '/nastavenia': typeof NastaveniaRoute
+  '/statistiky': typeof StatistikyRoute
   '/tankovanie': typeof TankovanieRoute
   '/terminy': typeof TerminyRoute
   '/vozidla': typeof VozidlaRoute
@@ -68,6 +84,8 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/historia': typeof HistoriaRoute
   '/naklady': typeof NakladyRoute
+  '/nastavenia': typeof NastaveniaRoute
+  '/statistiky': typeof StatistikyRoute
   '/tankovanie': typeof TankovanieRoute
   '/terminy': typeof TerminyRoute
   '/vozidla': typeof VozidlaRoute
@@ -75,14 +93,31 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/historia' | '/naklady' | '/tankovanie' | '/terminy' | '/vozidla'
+    | '/'
+    | '/historia'
+    | '/naklady'
+    | '/nastavenia'
+    | '/statistiky'
+    | '/tankovanie'
+    | '/terminy'
+    | '/vozidla'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/historia' | '/naklady' | '/tankovanie' | '/terminy' | '/vozidla'
+  to:
+    | '/'
+    | '/historia'
+    | '/naklady'
+    | '/nastavenia'
+    | '/statistiky'
+    | '/tankovanie'
+    | '/terminy'
+    | '/vozidla'
   id:
     | '__root__'
     | '/'
     | '/historia'
     | '/naklady'
+    | '/nastavenia'
+    | '/statistiky'
     | '/tankovanie'
     | '/terminy'
     | '/vozidla'
@@ -92,6 +127,8 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   HistoriaRoute: typeof HistoriaRoute
   NakladyRoute: typeof NakladyRoute
+  NastaveniaRoute: typeof NastaveniaRoute
+  StatistikyRoute: typeof StatistikyRoute
   TankovanieRoute: typeof TankovanieRoute
   TerminyRoute: typeof TerminyRoute
   VozidlaRoute: typeof VozidlaRoute
@@ -118,6 +155,20 @@ declare module '@tanstack/react-router' {
       path: '/naklady'
       fullPath: '/naklady'
       preLoaderRoute: typeof NakladyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/nastavenia': {
+      id: '/nastavenia'
+      path: '/nastavenia'
+      fullPath: '/nastavenia'
+      preLoaderRoute: typeof NastaveniaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/statistiky': {
+      id: '/statistiky'
+      path: '/statistiky'
+      fullPath: '/statistiky'
+      preLoaderRoute: typeof StatistikyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/tankovanie': {
@@ -148,6 +199,8 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   HistoriaRoute: HistoriaRoute,
   NakladyRoute: NakladyRoute,
+  NastaveniaRoute: NastaveniaRoute,
+  StatistikyRoute: StatistikyRoute,
   TankovanieRoute: TankovanieRoute,
   TerminyRoute: TerminyRoute,
   VozidlaRoute: VozidlaRoute,

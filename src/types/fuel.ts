@@ -1,6 +1,11 @@
-export const FUEL_TYPES = ['Benzín', 'Diesel', 'LPG', 'EV'] as const;
+export const VEHICLE_FUEL_TYPES = ['Benzín', 'Nafta', 'LPG', 'Elektro'] as const;
+/** Includes legacy labels so existing fill-ups and backups remain valid. */
+export const FUEL_TYPES = [...VEHICLE_FUEL_TYPES, 'Diesel', 'EV'] as const;
+export const FUEL_GRADES = ['normal', 'premium'] as const;
 
+export type VehicleFuelType = (typeof VEHICLE_FUEL_TYPES)[number];
 export type FuelType = (typeof FUEL_TYPES)[number];
+export type FuelGrade = (typeof FUEL_GRADES)[number];
 
 export type Vehicle = {
   id: string;
@@ -10,6 +15,8 @@ export type Vehicle = {
   initialOdometer: number;
   /** Tank capacity in liters (0–1000). */
   tankCapacity?: number | undefined;
+  /** Preferred fuel for new fill-ups; optional for vehicles saved before this setting existed. */
+  fuelType?: VehicleFuelType | undefined;
 };
 
 export type FillUp = {
@@ -21,6 +28,8 @@ export type FillUp = {
   totalCost: number;
   pricePerLiter: number;
   fuelType: FuelType;
+  /** Normal or Plus/Premium for petrol and diesel; absent on older records and other fuels. */
+  fuelGrade?: FuelGrade | undefined;
   isFullTank: boolean;
   tankLevelPercent?: number | undefined;
 };

@@ -3,7 +3,8 @@ import { Button } from "@/components/ui/button";
 import { FormField, SegmentedControl } from "@/components/app/ui";
 import { formatCurrency, formatNumber, isFullTankFillUp } from "@/lib/fuelCalculations";
 import { parseDecimal } from "@/lib/parseDecimal";
-import { FUEL_TYPES, type FillUp, type FuelType } from "@/types/fuel";
+import type { FillUp, FuelGrade, VehicleFuelType } from "@/types/fuel";
+import { isPremiumEligible, normalizeVehicleFuelType } from "@/lib/fuelTypes";
 
 type PriceMode = "total" | "perLiter";
 type FullTank = "yes" | "no";
@@ -20,13 +21,14 @@ function isValidIsoDate(v: string) {
   return dt.getFullYear() === y && dt.getMonth() === m - 1 && dt.getDate() === d;
 }
 
-export function FillUpForm({ latestOdometer, initialFillUp, onSubmit }: { latestOdometer: number; initialFillUp?: FillUp; onSubmit: (i: Omit<FillUp, "id" | "vehicleId">) => void }) {
+export function FillUpForm({ latestOdometer, vehicleFuelType, initialFillUp, onSubmit }: { latestOdometer: number; vehicleFuelType: VehicleFuelType; initialFillUp?: FillUp; onSubmit: (i: Omit<FillUp, "id" | "vehicleId">) => void }) {
   const [date, setDate] = useState(() => initialFillUp?.date ?? todayIso());
   const [odometer, setOdometer] = useState(() => initialFillUp ? String(initialFillUp.odometer) : "");
   const [liters, setLiters] = useState(() => initialFillUp ? String(initialFillUp.liters) : "");
   const [priceMode, setPriceMode] = useState<PriceMode>("total");
   const [priceValue, setPriceValue] = useState(() => initialFillUp ? String(initialFillUp.totalCost) : "");
-  const [fuelType, setFuelType] = useState<FuelType>(initialFillUp?.fuelType ?? "Benzín");
+  const [fuelType, setFuelType] = useState<VehicleFuelType>(() => initialFillUp ? normalizeVehicleFuelType(initialFillUp.fuelType) : vehicleFuelType);
+  const [fuelGrade, setFuelGrade] = useState<FuelGrade>(initialFillUp?.fuelGrade ?? "normal");
   const [full, setFull] = useState<FullTank>(initialFillUp && isFullTankFillUp(initialFillUp) ? "yes" : "no");
   const [tankLevel, setTankLevel] = useState(() => initialFillUp?.tankLevelPercent !== undefined ? String(initialFillUp.tankLevelPercent) : "");
   const [errors, setErrors] = useState<Errors>({});
@@ -58,6 +60,7 @@ export function FillUpForm({ latestOdometer, initialFillUp, onSubmit }: { latest
       totalCost: Math.round(total * 100) / 100,
       pricePerLiter: Math.round(perL * 1000) / 1000,
       fuelType, isFullTank: percent === undefined ? full === "yes" : percent === 100,
+      ...(isPremiumEligible(fuelType) ? { fuelGrade } : {}),
       ...(percent === undefined ? {} : { tankLevelPercent: percent }),
     });
     if (initialFillUp) return;
@@ -82,8 +85,16 @@ export function FillUpForm({ latestOdometer, initialFillUp, onSubmit }: { latest
       </div>
       <div className="space-y-2">
         <p className="text-sm font-semibold text-muted-foreground">Typ paliva</p>
-        <SegmentedControl options={FUEL_TYPES} value={fuelType} onChange={setFuelType} />
+        <SegmentedControl options={[fuelType] as const} value={fuelType} onChange={setFuelType} />
+        <p className="text-sm text-muted-foreground">Predvolený typ paliva zmeníte v nastaveniach vozidla.</p>
       </div>
+      {isPremiumEligible(fuelType) ? (
+        <div className="space-y-2">
+          <p className="text-sm font-semibold text-muted-foreground">Variant paliva</p>
+          <SegmentedControl options={["normal", "premium"] as const} value={fuelGrade} onChange={setFuelGrade}
+            labels={{ normal: "Normal", premium: "Plus / Premium" }} />
+        </div>
+      ) : null}
       <div className="space-y-2">
         <p className="text-sm font-semibold text-muted-foreground">Natankované do plnej nádrže?</p>
         <SegmentedControl options={["yes", "no"] as const} value={full} onChange={(value) => {

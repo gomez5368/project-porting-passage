@@ -1,8 +1,8 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
-import { BellRing, ChevronRight } from "lucide-react";
-import { EmptyVehicleState, ScreenHeader, StatCard, TrendChart, VehicleSwitcher } from "@/components/app/ui";
+import { BarChart3, BellRing, ChevronRight, Fuel, History, Settings, type LucideIcon } from "lucide-react";
+import { EmptyVehicleState, ScreenHeader, StatCard, VehicleSwitcher } from "@/components/app/ui";
 import { useCarData } from "@/context/CarDataContext";
-import { formatNumber, formatShortDate, sortFillUps, summarizeVehicle } from "@/lib/fuelCalculations";
+import { formatNumber, summarizeVehicle } from "@/lib/fuelCalculations";
 import { currentOdometer, reminderAlerts, remindersFor, todayIso, type ReminderAlert } from "@/lib/reminders";
 import { statusCard, statusText } from "@/components/app/reminderTone";
 import { cn } from "@/lib/utils";
@@ -11,9 +11,9 @@ export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "Prehľad spotreby – Spotreba auta" },
-      { name: "description", content: "Priemerná spotreba, náklady na palivo a cena za kilometer vášho auta." },
+      { name: "description", content: "Rýchly prístup k tankovaniam, histórii, nákladom, štatistikám a nastaveniam vášho auta." },
       { property: "og:title", content: "Prehľad spotreby – Spotreba auta" },
-      { property: "og:description", content: "Priemerná spotreba, náklady na palivo a cena za kilometer vášho auta." },
+      { property: "og:description", content: "Rýchly prístup k tankovaniam, histórii, nákladom, štatistikám a nastaveniam vášho auta." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -21,61 +21,75 @@ export const Route = createFileRoute("/")({
   component: Overview,
 });
 
+type TileProps = {
+  to: "/tankovanie" | "/historia" | "/statistiky" | "/nastavenia";
+  label: string;
+  icon: LucideIcon;
+  badge?: string | undefined;
+};
+
+function HomeTile({ to, label, icon: Icon, badge }: TileProps) {
+  return (
+    <Link to={to} className="panel relative flex min-h-36 flex-col items-center justify-center gap-3 px-3 py-5 text-center transition-colors hover:border-primary hover:bg-muted">
+      {badge ? <span className="absolute right-3 top-3 rounded-full bg-warning/15 px-2.5 py-1 text-xs font-bold text-warning">{badge}</span> : null}
+      <span className="rounded-2xl bg-accent p-4 text-accent-foreground"><Icon className="size-9" strokeWidth={1.8} /></span>
+      <span className="font-semibold leading-snug">{label}</span>
+    </Link>
+  );
+}
+
 function Overview() {
   const { vehicles, reminders, selectedVehicle, selectedFillUps, selectedCosts, selectVehicle } = useCarData();
-  const otherCosts = selectedCosts.reduce((s, c) => s + c.amount, 0);
+  const otherCosts = selectedCosts.reduce((sum, cost) => sum + cost.amount, 0);
   const summary = selectedVehicle ? summarizeVehicle(selectedVehicle, selectedFillUps) : null;
   const lastSegment = summary?.segments.at(-1) ?? null;
   const alerts = selectedVehicle
     ? reminderAlerts(remindersFor({ reminders }, selectedVehicle.id), currentOdometer(selectedVehicle, selectedFillUps), todayIso())
     : [];
+  const inspectionAlerts = alerts.filter((alert) => alert.key === "stk" || alert.key === "ek");
+
   return (
     <>
-      <ScreenHeader title="Prehľad" subtitle={selectedVehicle ? `${selectedVehicle.brand} ${selectedVehicle.model}` : "Štatistiky vášho auta"} />
+      <ScreenHeader title="Prehľad" subtitle={selectedVehicle ? `${selectedVehicle.brand} ${selectedVehicle.model}` : "Všetko o vašom aute na jednom mieste"} />
+      {selectedVehicle ? <VehicleSwitcher vehicles={vehicles} selectedId={selectedVehicle.id} onSelect={selectVehicle} /> : null}
+      {alerts.length > 0 ? <ReminderBanner alerts={alerts} /> : null}
+
+      <nav aria-label="Hlavné menu" className="mb-6 grid grid-cols-2 gap-3">
+        <HomeTile to="/tankovanie" label="Nové tankovanie" icon={Fuel} />
+        <HomeTile to="/historia" label="História a Náklady" icon={History} />
+        <HomeTile to="/statistiky" label="Štatistiky" icon={BarChart3} />
+        <HomeTile to="/nastavenia" label="Nastavenia vozidla" icon={Settings} badge={inspectionAlerts.length > 0 ? "STK/EK" : undefined} />
+      </nav>
+
       {selectedVehicle && summary ? (
-        <>
-          <VehicleSwitcher vehicles={vehicles} selectedId={selectedVehicle.id} onSelect={selectVehicle} />
-          {alerts.length > 0 ? <ReminderBanner alerts={alerts} /> : null}
+        <section aria-labelledby="quick-stats-title">
+          <div className="mb-3 flex items-center justify-between gap-2">
+            <h2 id="quick-stats-title" className="font-semibold">Rýchly prehľad</h2>
+            <Link to="/statistiky" className="text-sm font-semibold text-primary hover:underline">Všetky štatistiky</Link>
+          </div>
           <div className="grid grid-cols-2 gap-3">
             <StatCard label="Priemerná spotreba" value={summary.averageConsumption !== null ? formatNumber(summary.averageConsumption, 1) : "—"} unit="l/100 km" tone="primary" />
-            <StatCard label="Náklady na palivo" value={formatNumber(summary.totalCost, 2)} unit="€" tone="secondary" />
-            <StatCard label="Cena za 1 km" value={summary.costPerKm !== null ? formatNumber(summary.costPerKm, 3) : "—"} unit="€/km" tone="warning" />
-            <StatCard label="Najazdené km" value={formatNumber(summary.totalKm)} unit="km" tone="success" />
-            <StatCard label="Ostatné náklady" value={formatNumber(otherCosts, 2)} unit="€" tone="warning" />
-            <StatCard label="Celkom za auto" value={formatNumber(summary.totalCost + otherCosts, 2)} unit="€" tone="primary" />
             <StatCard label="Posledná spotreba" value={lastSegment ? formatNumber(lastSegment.consumption, 1) : "—"} unit="l/100 km" tone="success" />
-            <StatCard label="Celková cena za 1 km" value={summary.totalKm > 0 ? formatNumber((summary.totalCost + otherCosts) / summary.totalKm, 3) : "—"} unit="€/km" tone="secondary" />
+            <StatCard label="Najazdené km" value={formatNumber(summary.totalKm)} unit="km" tone="secondary" />
+            <StatCard label="Celkom za auto" value={formatNumber(summary.totalCost + otherCosts, 2)} unit="€" tone="warning" />
           </div>
-          {summary.averageConsumption === null ? (
-            <p className="mt-3 text-sm text-muted-foreground">Priemerná spotreba sa zobrazí po dvoch tankovaniach do plnej nádrže.</p>
-          ) : null}
-          <TrendChart title="Vývoj spotreby" tone="primary"
-            points={summary.segments.map((s) => ({ label: formatShortDate(s.date), value: s.consumption }))}
-            formatValue={(v) => `${formatNumber(v, 1)} l/100 km`}
-            emptyText="Graf spotreby sa zobrazí po dvoch tankovaniach do plnej nádrže." />
-          <TrendChart title="Vývoj ceny paliva" tone="secondary"
-            points={sortFillUps(selectedFillUps).map((f) => ({ label: formatShortDate(f.date), value: f.pricePerLiter }))}
-            formatValue={(v) => `${formatNumber(v, 3)} €/l`}
-            emptyText="Zatiaľ žiadne tankovania. Graf ceny sa zobrazí po prvom tankovaní." />
-        </>
-      ) : (
-        <EmptyVehicleState />
-      )}
+        </section>
+      ) : <EmptyVehicleState />}
     </>
   );
 }
 
 function ReminderBanner({ alerts }: { alerts: ReminderAlert[] }) {
-  const tone = alerts.some((a) => a.status === "overdue") ? "overdue" : "soon";
+  const tone = alerts.some((alert) => alert.status === "overdue") ? "overdue" : "soon";
   return (
-    <Link to="/terminy" data-testid="reminder-banner"
+    <Link to="/nastavenia" data-testid="reminder-banner"
       className={cn("mb-4 flex items-center gap-3 rounded-xl border px-4 py-3 text-sm transition-colors hover:bg-card", statusCard[tone])}>
       <BellRing className={cn("size-5 shrink-0", statusText[tone])} />
       <span className="min-w-0 flex-1">
         <span className="font-semibold">{tone === "overdue" ? "Treba vybaviť" : "Blíži sa termín"}: </span>
-        {alerts.map((a, i) => (
-          <span key={a.key}>
-            {i > 0 ? " · " : ""}{a.label} <span className={cn("font-semibold", statusText[a.status])}>({a.text})</span>
+        {alerts.map((alert, index) => (
+          <span key={alert.key}>
+            {index > 0 ? " · " : ""}{alert.label} <span className={cn("font-semibold", statusText[alert.status])}>({alert.text})</span>
           </span>
         ))}
       </span>

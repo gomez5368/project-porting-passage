@@ -4,6 +4,7 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  useRouterState,
   HeadContent,
   Scripts,
   type ErrorComponentProps,
@@ -12,17 +13,8 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
-import { CalendarClock, Car, Fuel, History, LayoutDashboard, Wallet } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { CarDataProvider } from "@/context/CarDataContext";
-
-const TABS = [
-  { to: "/", label: "Prehľad", icon: LayoutDashboard },
-  { to: "/tankovanie", label: "Tankovanie", icon: Fuel },
-  { to: "/historia", label: "História", icon: History },
-  { to: "/naklady", label: "Náklady", icon: Wallet },
-  { to: "/terminy", label: "Termíny", icon: CalendarClock },
-  { to: "/vozidla", label: "Vozidlá", icon: Car },
-] as const;
 
 function NotFoundComponent() {
   return (
@@ -140,28 +132,20 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
 
   return (
     <QueryClientProvider client={queryClient}>
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <CarDataProvider>
-        <main className="mx-auto max-w-2xl px-4 pb-28 pt-8">
+        <main className="mx-auto max-w-2xl px-4 pb-10 pt-6">
+          {pathname !== "/" ? (
+            <Link to="/" className="mb-5 inline-flex min-h-11 items-center gap-2 rounded-lg px-2 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground">
+              <ArrowLeft className="size-5" /> Späť na prehľad
+            </Link>
+          ) : null}
           <Outlet />
         </main>
-        <nav className="fixed inset-x-0 bottom-0 border-t border-border bg-card/95 backdrop-blur">
-          <ul className="mx-auto grid max-w-2xl grid-cols-6">
-            {TABS.map(({ to, label, icon: Icon }) => (
-              <li key={to}>
-                <Link to={to} activeOptions={{ exact: true }}
-                  className="flex flex-col items-center gap-1 py-3 text-[10px] font-semibold sm:text-xs text-muted-foreground transition-colors hover:text-foreground"
-                  activeProps={{ className: "text-primary hover:text-primary" }}>
-                  <Icon className="size-5" />
-                  {label}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </nav>
       </CarDataProvider>
     </QueryClientProvider>
   );

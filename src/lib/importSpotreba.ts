@@ -13,9 +13,11 @@ const TIME_SUFFIX = /\s+\d{1,2}:\d{2}(:\d{2})?.*$/;
 const DATE_LIKE = /\d{1,4}[./-]\d{1,2}[./-]\d{2,4}/;
 const FUEL_ALIASES: Record<FuelType, string[]> = {
   Benzín: ['benzin', 'benz', 'natural', 'e10'],
-  Diesel: ['diesel', 'nafta'],
+  Nafta: ['nafta'],
+  Diesel: ['diesel'],
   LPG: ['lpg', 'plyn'],
-  EV: ['ev', 'elektr'],
+  Elektro: ['elektro', 'elektrina', 'elektr'],
+  EV: ['ev'],
 };
 const YES_WORDS = ['ano', 'yes', 'a', 'true', 'x', '✓', '✔'];
 const NO_WORDS = ['nie', 'no', 'n', 'false'];

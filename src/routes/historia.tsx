@@ -8,9 +8,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { FillUpForm } from "@/components/app/FillUpForm";
 import { JsonBackupSection } from "@/components/app/JsonBackupSection";
 import type { FillUp } from "@/types/fuel";
-import { EmptyVehicleState, FillUpRow, ImportSpotrebaCard, ScreenHeader, VehicleSwitcher } from "@/components/app/ui";
+import { EmptyVehicleState, FillUpRow, HistoryCostsNav, ImportSpotrebaCard, ScreenHeader, VehicleSwitcher } from "@/components/app/ui";
 import { useCarData } from "@/context/CarDataContext";
 import { buildConsumptionSegments, sortFillUps } from "@/lib/fuelCalculations";
+import { vehicleFuelType } from "@/lib/fuelTypes";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/historia")({
@@ -53,6 +54,7 @@ function History() {
   return (
     <>
       <ScreenHeader title="História" subtitle={selectedVehicle ? `${selectedVehicle.brand} ${selectedVehicle.model} · ${selectedFillUps.length} tankovaní` : "Všetky zapísané tankovania"} />
+      <HistoryCostsNav />
       <JsonBackupSection />
       {selectedVehicle ? (
         <>
@@ -88,7 +90,7 @@ function History() {
       <Dialog open={editing !== null} onOpenChange={(open) => { if (!open) setEditing(null); }}>
         <DialogContent className="max-h-[90vh] overflow-y-auto">
           <DialogHeader><DialogTitle>Upraviť tankovanie</DialogTitle></DialogHeader>
-          {editing ? <FillUpForm key={editing.id} latestOdometer={0} initialFillUp={editing} onSubmit={(changes) => {
+          {editing && selectedVehicle ? <FillUpForm key={editing.id} latestOdometer={0} vehicleFuelType={vehicleFuelType(selectedVehicle, selectedFillUps)} initialFillUp={editing} onSubmit={(changes) => {
             updateFillUp(editing.id, changes);
             setEditing(null);
           }} /> : null}

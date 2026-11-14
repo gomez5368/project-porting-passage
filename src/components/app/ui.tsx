@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
-import { Car, Pencil, Trash2, Upload } from "lucide-react";
+import { Car, History, Pencil, Trash2, Upload, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
@@ -14,6 +14,17 @@ export function ScreenHeader({ title, subtitle }: { title: string; subtitle?: st
       <h1 className="text-3xl font-bold tracking-tight">{title}</h1>
       {subtitle ? <p className="mt-1 text-muted-foreground">{subtitle}</p> : null}
     </header>
+  );
+}
+
+export function HistoryCostsNav() {
+  return (
+    <nav aria-label="História a náklady" className="mb-5 grid grid-cols-2 gap-2 rounded-xl border border-border bg-muted p-1">
+      <Link to="/historia" activeOptions={{ exact: true }} className="flex items-center justify-center gap-2 rounded-lg px-3 py-2.5 text-sm font-semibold text-muted-foreground"
+        activeProps={{ className: "bg-card text-foreground" }}><History className="size-4" /> Tankovania</Link>
+      <Link to="/naklady" activeOptions={{ exact: true }} className="flex items-center justify-center gap-2 rounded-lg px-3 py-2.5 text-sm font-semibold text-muted-foreground"
+        activeProps={{ className: "bg-card text-foreground" }}><Wallet className="size-4" /> Náklady</Link>
+    </nav>
   );
 }
 
@@ -78,7 +89,7 @@ export function EmptyVehicleState() {
       <div className="mb-4 rounded-full bg-accent p-4 text-accent-foreground"><Car className="size-8" /></div>
       <h2 className="text-lg font-semibold">Zatiaľ nemáte žiadne vozidlo</h2>
       <p className="mt-1 max-w-xs text-muted-foreground">Pridajte svoje auto a začnite sledovať spotrebu a výdavky.</p>
-      <Button asChild size="lg" className="mt-5"><Link to="/vozidla">Pridať vozidlo</Link></Button>
+      <Button asChild size="lg" className="mt-5"><Link to="/nastavenia">Pridať vozidlo</Link></Button>
     </div>
   );
 }
@@ -162,6 +173,7 @@ export function FillUpRow({ fillUp, consumption, onDelete, onEdit }: { fillUp: F
         </div>
         <div className="flex flex-wrap justify-end gap-1.5">
           <span className="rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold">{fillUp.fuelType}</span>
+          {fillUp.fuelGrade ? <span className="rounded-full bg-secondary/15 px-2.5 py-0.5 text-xs font-semibold text-secondary">{fillUp.fuelGrade === "premium" ? "Plus / Premium" : "Normal"}</span> : null}
           <span className="rounded-full bg-accent px-2.5 py-0.5 text-xs font-semibold text-accent-foreground">{fillUp.tankLevelPercent !== undefined ? `Nádrž ${formatNumber(fillUp.tankLevelPercent, 0)} %` : isFullTankFillUp(fillUp) ? "Plná nádrž" : "Neúplná nádrž"}</span>
         </div>
       </div>

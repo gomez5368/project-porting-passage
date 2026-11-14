@@ -3,7 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Download, Pencil, Trash2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { EmptyVehicleState, FormField, ScreenHeader, VehicleSwitcher } from "@/components/app/ui";
+import { EmptyVehicleState, FormField, HistoryCostsNav, ScreenHeader, VehicleSwitcher } from "@/components/app/ui";
 import { useCarData } from "@/context/CarDataContext";
 import { costsCsvFilename, serializeCostsCsv } from "@/lib/costsCsv";
 import { downloadFile } from "@/lib/downloadFile";
@@ -48,6 +48,7 @@ function Costs() {
   return (
     <>
       <ScreenHeader title="Náklady" subtitle={`${selectedVehicle.brand} ${selectedVehicle.model}`} />
+      <HistoryCostsNav />
       <VehicleSwitcher vehicles={vehicles} selectedId={selectedVehicle.id} onSelect={selectVehicle} />
 
       <div className="grid grid-cols-3 gap-3">

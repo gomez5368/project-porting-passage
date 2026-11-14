@@ -3,6 +3,7 @@ import { FillUpForm } from "@/components/app/FillUpForm";
 import { EmptyVehicleState, ScreenHeader, VehicleSwitcher } from "@/components/app/ui";
 import { useCarData } from "@/context/CarDataContext";
 import { getLatestOdometer } from "@/lib/fuelCalculations";
+import { vehicleFuelType } from "@/lib/fuelTypes";
 
 export const Route = createFileRoute("/tankovanie")({
   head: () => ({
@@ -27,6 +28,7 @@ function Refuel() {
         <>
           <VehicleSwitcher vehicles={vehicles} selectedId={selectedVehicle.id} onSelect={selectVehicle} />
           <FillUpForm key={selectedVehicle.id} latestOdometer={getLatestOdometer(selectedVehicle, selectedFillUps)}
+            vehicleFuelType={vehicleFuelType(selectedVehicle, selectedFillUps)}
             onSubmit={(i) => addFillUps([{ ...i, vehicleId: selectedVehicle.id }])} />
         </>
       ) : (

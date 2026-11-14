@@ -8,3 +8,7 @@
 - [x] Overenie výpočtu spotreby a uloženia v prehliadači
 - [x] Filter tankovaní podľa roku a postupné zobrazovanie v Histórii
 - [x] Termíny a servis (STK, EK, PZP, havarijné, diaľničná známka, výmena oleja) + upozornenie na Prehľade + JSON záloha
+- [x] Mobilné dlaždicové menu a samostatné štatistiky
+- [x] Spoločné nastavenia vozidla, paliva a servisných termínov s odznakom STK/EK
+- [x] Variant Normal/Premium pri tankovaní, v úpravách, histórii a JSON zálohe
+- [x] Overiť hlavné mobilné toky v prehliadači
