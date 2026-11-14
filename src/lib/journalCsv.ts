@@ -20,13 +20,23 @@ function fuelGradeLabel(grade: FuelGrade | undefined): string {
 
 type Row = { date: string; odometer: number | null; cells: string[] };
 
+export type JournalCsvFilter = {
+  vehicleId?: string | undefined;
+  dateFrom?: string | undefined;
+  dateTo?: string | undefined;
+};
+
 /** Fill-ups and costs in one chronologically ordered sheet (oldest record first). */
-export function serializeJournalCsv(fillUps: FillUp[], costs: Cost[], vehicles: Vehicle[]): string {
+export function serializeJournalCsv(fillUps: FillUp[], costs: Cost[], vehicles: Vehicle[], filter: JournalCsvFilter = {}): string {
   const names = new Map(vehicles.map((v) => [v.id, `${v.brand} ${v.model}`.trim()]));
   const name = (vehicleId: string) => names.get(vehicleId) ?? "Neznáme vozidlo";
+  const include = (vehicleId: string, date: string) =>
+    (!filter.vehicleId || vehicleId === filter.vehicleId) &&
+    (!filter.dateFrom || date >= filter.dateFrom) &&
+    (!filter.dateTo || date <= filter.dateTo);
 
   const rows: Row[] = [
-    ...fillUps.map((f) => ({
+    ...fillUps.filter((f) => include(f.vehicleId, f.date)).map((f) => ({
       date: f.date,
       odometer: f.odometer,
       cells: [
@@ -41,7 +51,7 @@ export function serializeJournalCsv(fillUps: FillUp[], costs: Cost[], vehicles: 
         "",
       ],
     })),
-    ...costs.map((c) => ({
+    ...costs.filter((c) => include(c.vehicleId, c.date)).map((c) => ({
       date: c.date,
       odometer: c.odometer,
       cells: [

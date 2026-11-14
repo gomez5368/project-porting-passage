@@ -29,4 +29,26 @@ describe("serializeJournalCsv", () => {
   it("orders all records chronologically, oldest first", () => {
     expect(lines.slice(1, 4).map((l) => l.slice(0, 10))).toEqual(["2025-03-01", "2025-03-02", "2025-03-03"]);
   });
+
+  it("exports only records belonging to the selected vehicle", () => {
+    const rapid: Vehicle = { ...vehicle, id: "other", brand: "Škoda", model: "Rapid" };
+    const filtered = serializeJournalCsv(
+      [fillUp, { ...fillUp, id: "other-fill", vehicleId: "other" }],
+      [cost, { ...cost, id: "other-cost", vehicleId: "other" }],
+      [vehicle, rapid],
+      { vehicleId: "other" },
+    );
+    expect(filtered).toContain("Škoda Rapid");
+    expect(filtered).not.toContain("Škoda Fabia");
+    expect(filtered.trimEnd().split("\r\n")).toHaveLength(3);
+  });
+
+  it("includes only records inside the selected date range, including both boundaries", () => {
+    const filtered = serializeJournalCsv([fillUp], [cost, costNoKm], [vehicle], {
+      dateFrom: "2025-03-02",
+      dateTo: "2025-03-03",
+    });
+    const dates = filtered.trimEnd().split("\r\n").slice(1).map((line) => line.slice(0, 10));
+    expect(dates).toEqual(["2025-03-02", "2025-03-03"]);
+  });
 });
