@@ -19,11 +19,15 @@ export function ScreenHeader({ title, subtitle }: { title: string; subtitle?: st
 
 export function HistoryCostsNav() {
   return (
-    <nav aria-label="História a náklady" className="mb-5 grid grid-cols-2 gap-2 rounded-xl border border-border bg-muted p-1">
-      <Link to="/historia" activeOptions={{ exact: true }} className="flex items-center justify-center gap-2 rounded-lg px-3 py-2.5 text-sm font-semibold text-muted-foreground"
-        activeProps={{ className: "bg-card text-foreground" }}><Fuel className="size-4" /> Tankovania</Link>
-      <Link to="/naklady" activeOptions={{ exact: true }} className="flex items-center justify-center gap-2 rounded-lg px-3 py-2.5 text-sm font-semibold text-muted-foreground"
-        activeProps={{ className: "bg-card text-foreground" }}><Wallet className="size-4" /> Náklady</Link>
+    <nav aria-label="História a náklady" className="mb-5 grid grid-cols-2 gap-3">
+      <Button asChild variant="outline" className="h-auto min-h-14 whitespace-normal rounded-lg p-3">
+        <Link to="/historia" activeOptions={{ exact: true }} className="text-muted-foreground"
+          activeProps={{ className: "border-primary bg-accent text-accent-foreground" }}><Fuel className="size-5 shrink-0" /> Tankovania</Link>
+      </Button>
+      <Button asChild variant="outline" className="h-auto min-h-14 whitespace-normal rounded-lg p-3">
+        <Link to="/naklady" activeOptions={{ exact: true }} className="text-muted-foreground"
+          activeProps={{ className: "border-secondary bg-secondary/15 text-secondary" }}><Wallet className="size-5 shrink-0" /> Náklady</Link>
+      </Button>
     </nav>
   );
 }

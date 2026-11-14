@@ -31,3 +31,4 @@
 - [x] Súkromné cloudové dáta, potvrdený prenos lokálnej histórie a ochrana pred prepísaním
 - [x] Testy izolácie cache a uloženia, vlastnícke RLS, serverové a AI nastavenia; 97 testov a mobilné prihlásenie
 - [ ] Overiť prenos a obnovenie cloudovej histórie po vymazaní prehliadača — čaká na prvý potvrdený účet používateľa
+- [x] Oddeliť navigačné políčka Tankovania a Náklady bez ďalších zmien ich obsahu — odkazy overené na počítači a mobile
