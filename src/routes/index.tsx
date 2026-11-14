@@ -55,6 +55,7 @@ function Overview() {
     <>
       <ScreenHeader title="Prehľad" subtitle={selectedVehicle ? `${selectedVehicle.brand} ${selectedVehicle.model}` : "Všetko o vašom aute na jednom mieste"} />
       {selectedVehicle ? <VehicleSwitcher vehicles={vehicles} selectedId={selectedVehicle.id} onSelect={selectVehicle} /> : null}
+      {selectedVehicle?.photo ? <img src={selectedVehicle.photo} alt={`${selectedVehicle.brand} ${selectedVehicle.model}`} className="mb-5 max-h-64 w-full rounded-lg bg-muted object-contain" /> : null}
       {alerts.length > 0 ? <ReminderBanner alerts={alerts} /> : null}
       <BackupBanner hasData={vehicles.length > 0} />
 

@@ -29,6 +29,7 @@ use the editor.
 - **Secrets.** Lovable manages them. Do not put secret values in the repo.
 <!-- LOVABLE:END -->
 - App data (vehicles, fill-ups) lives in browser localStorage via src/context/CarDataContext.tsx under key spotreba-app-state-v1 — kept from the original Bolt app so no backend is needed.
+- Vehicle photos are resized and JPEG-compressed in the browser, stored as optional inline data in vehicle state and validated in JSON backups so photos remain portable without a backend.
 - Browser-only WASM (sql.js for .db3 backup import) is served from public/wasm and loaded by URL — importing .wasm from src breaks the server bundle.
 - JSON backup validation and serialization live in a browser-safe shared module; restores replace the complete state only after validation and confirmation to avoid partial or orphaned data.
 - Fill-up creation and editing share one form; updates preserve record and vehicle IDs so derived statistics automatically follow the current history.

@@ -14,3 +14,4 @@
 - [x] Overiť hlavné mobilné toky v prehliadači
 - [x] CSV export s výberom vozidla a obdobia od–do
 - [x] CSV export split: Všetko / Len palivo / Len ostatné náklady + overenie v prehliadači
+- [x] Fotka auta: pridanie, výmena a odstránenie v nastaveniach, prehľad a JSON záloha; overenie uloženia

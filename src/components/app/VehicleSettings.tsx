@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { FormField, SegmentedControl } from "@/components/app/ui";
 import { BackupImportCard } from "@/components/app/BackupImportCard";
+import { VehiclePhotoField } from "@/components/app/VehiclePhotoField";
 import { useCarData } from "@/context/CarDataContext";
 import { formatNumber } from "@/lib/fuelCalculations";
 import { vehicleFuelType } from "@/lib/fuelTypes";
@@ -23,6 +24,8 @@ export function VehicleSettings() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [tank, setTank] = useState("");
   const [power, setPower] = useState("");
+  const [photo, setPhoto] = useState<string | undefined>();
+  const [photoBusy, setPhotoBusy] = useState(false);
   const [open, setOpen] = useState(false);
   const [brand, setBrand] = useState("");
   const [model, setModel] = useState("");
@@ -35,15 +38,18 @@ export function VehicleSettings() {
   const reset = () => {
     setBrand(""); setModel(""); setYear(""); setOdo(""); setTank(""); setPower(""); setFuelType("Benzín");
     setEditingId(null); setErrors({});
+    setPhoto(undefined); setPhotoBusy(false);
   };
   const startEdit = (vehicle: Vehicle) => {
     setBrand(vehicle.brand); setModel(vehicle.model); setYear(String(vehicle.year)); setOdo(String(vehicle.initialOdometer));
     setTank(vehicle.tankCapacity !== undefined ? String(vehicle.tankCapacity) : "");
     setPower(vehicle.enginePowerKw !== undefined ? String(vehicle.enginePowerKw) : "");
+    setPhoto(vehicle.photo); setPhotoBusy(false);
     setFuelType(vehicleFuelType(vehicle, fillUps)); setErrors({}); setEditingId(vehicle.id); setOpen(true);
   };
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (photoBusy) return;
     const y = parseDecimal(year), o = parseDecimal(odo);
     const t = tank.trim() === "" ? undefined : parseDecimal(tank);
     const p = power.trim() === "" ? undefined : parseDecimal(power);
@@ -60,6 +66,7 @@ export function VehicleSettings() {
       brand: brand.trim(), model: model.trim(), year: y, initialOdometer: Math.round(o), fuelType,
       ...(t === undefined ? {} : { tankCapacity: t }),
       ...(p === undefined ? {} : { enginePowerKw: p }),
+      ...(photo === undefined ? {} : { photo }),
     };
     if (editingId) updateVehicle(editingId, data); else addVehicle(data);
     reset();
@@ -82,7 +89,10 @@ export function VehicleSettings() {
                 <button type="button" onClick={() => selectVehicle(vehicle.id)}
                   className={cn("panel block w-full pr-24 text-left transition-colors", active ? "border-primary" : "hover:bg-muted")}>
                   <div className="flex items-center justify-between gap-2">
-                    <span className="text-lg font-semibold">{vehicle.brand} {vehicle.model}</span>
+                    <span className="flex min-w-0 flex-wrap items-center gap-3">
+                      {vehicle.photo ? <img src={vehicle.photo} alt={`${vehicle.brand} ${vehicle.model}`} className="h-16 w-24 shrink-0 rounded-md bg-muted object-contain" /> : null}
+                      <span className="break-words text-lg font-semibold">{vehicle.brand} {vehicle.model}</span>
+                    </span>
                     {active ? <span className="rounded-full bg-accent px-2.5 py-0.5 text-xs font-semibold text-accent-foreground">Aktívne</span> : null}
                   </div>
                   <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-5">
@@ -118,6 +128,7 @@ export function VehicleSettings() {
         <DialogContent className="max-h-[90vh] overflow-y-auto">
           <DialogHeader><DialogTitle>{editingId ? "Upraviť vozidlo" : "Nové vozidlo"}</DialogTitle></DialogHeader>
           <form onSubmit={submit} className="space-y-4">
+            <VehiclePhotoField value={photo} onChange={setPhoto} onBusyChange={setPhotoBusy} />
             <div className="grid gap-3 sm:grid-cols-3">
               <FormField label="Značka" value={brand} onChange={setBrand} placeholder="napr. Škoda" error={errors.brand} />
               <FormField label="Model" value={model} onChange={setModel} placeholder="napr. Octavia" error={errors.model} />
@@ -130,7 +141,7 @@ export function VehicleSettings() {
             </div>
             <FormField label="Počiatočný stav tachometra" value={odo} onChange={setOdo} inputMode="numeric" placeholder="napr. 125000" suffix="km" error={errors.initialOdometer} />
             <FormField label="Objem nádrže" value={tank} onChange={setTank} inputMode="decimal" placeholder="napr. 45" suffix="l" error={errors.tankCapacity} hint="Voliteľné, od 0 do 1000 litrov." />
-            <Button type="submit" size="lg" className="w-full">{editingId ? "Uložiť zmeny" : "Uložiť vozidlo"}</Button>
+            <Button type="submit" size="lg" className="w-full" disabled={photoBusy}>{editingId ? "Uložiť zmeny" : "Uložiť vozidlo"}</Button>
           </form>
         </DialogContent>
       </Dialog>

@@ -24,6 +24,16 @@ describe("JSON backup", () => {
   it("supports older backups without costs", () => {
     expect(parseJsonBackup(JSON.stringify({ ...state, costs: undefined })).costs).toEqual([]);
   });
+  it("preserves vehicle photos in a complete JSON round trip", () => {
+    const photo = "data:image/jpeg;base64,/9j/2Q==";
+    const withPhoto = { ...state, vehicles: [{ ...vehicle, photo }] };
+    expect(parseJsonBackup(serializeJsonBackup(withPhoto))).toEqual(withPhoto);
+  });
+  it("rejects active or external photo content", () => {
+    for (const photo of ['data:image/svg+xml;base64,PHN2Zz4=', 'https://example.com/car.jpg']) {
+      expect(() => parseJsonBackup(JSON.stringify({ ...state, vehicles: [{ ...vehicle, photo }] }))).toThrow();
+    }
+  });
   it("rejects malformed JSON", () => {
     expect(() => parseJsonBackup("{broken")).toThrow();
   });

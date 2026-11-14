@@ -19,6 +19,8 @@ export type Vehicle = {
   enginePowerKw?: number | undefined;
   /** Preferred fuel for new fill-ups; optional for vehicles saved before this setting existed. */
   fuelType?: VehicleFuelType | undefined;
+  /** Compressed local JPEG, included in JSON backups. */
+  photo?: string | undefined;
 };
 
 export type FillUp = {

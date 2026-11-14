@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { MAX_PHOTO_LENGTH, vehiclePhotoPattern } from "@/lib/vehiclePhoto";
 import { FUEL_GRADES, FUEL_TYPES, VEHICLE_FUEL_TYPES, type AppState, type FillUp, type Cost } from "@/types/fuel";
 
 const id = z.string().min(1);
@@ -8,7 +9,7 @@ const date = z.string().regex(/^\d{4}-\d{2}-\d{2}$/).refine((v) => {
   return Number.isFinite(parsed.getTime()) && parsed.toISOString().slice(0, 10) === v;
 });
 const stateSchema = z.object({
-  vehicles: z.array(z.object({ id, brand: z.string().min(1), model: z.string().min(1), year: z.number().int(), initialOdometer: nonNegative, tankCapacity: z.number().finite().min(0).max(1000).optional(), enginePowerKw: z.number().finite().positive().max(2000).optional(), fuelType: z.enum(VEHICLE_FUEL_TYPES).optional() })),
+  vehicles: z.array(z.object({ id, brand: z.string().min(1), model: z.string().min(1), year: z.number().int(), initialOdometer: nonNegative, tankCapacity: z.number().finite().min(0).max(1000).optional(), enginePowerKw: z.number().finite().positive().max(2000).optional(), fuelType: z.enum(VEHICLE_FUEL_TYPES).optional(), photo: z.string().max(MAX_PHOTO_LENGTH).regex(vehiclePhotoPattern).optional() })),
   fillUps: z.array(z.object({
     id, vehicleId: id, date, odometer: nonNegative.int(), liters: z.number().finite().positive(),
     totalCost: nonNegative, pricePerLiter: nonNegative, fuelType: z.enum(FUEL_TYPES), isFullTank: z.boolean(),
