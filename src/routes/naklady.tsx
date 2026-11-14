@@ -3,14 +3,14 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Download, Pencil, Trash2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { EmptyVehicleState, FormField, HistoryCostsNav, ScreenHeader, VehicleSwitcher } from "@/components/app/ui";
+import { EmptyVehicleState, HistoryCostsNav, ScreenHeader, VehicleSwitcher } from "@/components/app/ui";
 import { useCarData } from "@/context/CarDataContext";
+import { CostForm } from "@/components/app/CostForm";
 import { costsCsvFilename, serializeCostsCsv } from "@/lib/costsCsv";
 import { downloadFile } from "@/lib/downloadFile";
 import { formatCurrency, formatDate, formatNumber } from "@/lib/fuelCalculations";
-import { parseDecimal } from "@/lib/parseDecimal";
 import { cn } from "@/lib/utils";
-import { COST_CATEGORIES, type Cost } from "@/types/fuel";
+import type { Cost } from "@/types/fuel";
 
 export const Route = createFileRoute("/naklady")({
   head: () => ({
@@ -26,10 +26,6 @@ export const Route = createFileRoute("/naklady")({
   component: Costs,
 });
 
-function todayIso() {
-  const n = new Date();
-  return `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, "0")}-${String(n.getDate()).padStart(2, "0")}`;
-}
 
 function Costs() {
   const { vehicles, selectedVehicle, selectedCosts, selectedFillUps, selectVehicle, addCost, deleteCost, updateCost } = useCarData();
@@ -83,7 +79,7 @@ function Costs() {
 
       <section className="panel mt-4">
         <h2 className="mb-4 font-semibold">Pridať náklad</h2>
-        <CostForm onSubmit={(v) => addCost({ ...v, vehicleId: selectedVehicle.id, odometer: null })} />
+        <CostForm onSubmit={(v) => addCost({ ...v, vehicleId: selectedVehicle.id })} />
       </section>
 
       <div className="mb-3 mt-6 flex flex-wrap items-center justify-between gap-2">
@@ -130,43 +126,3 @@ function Costs() {
   );
 }
 
-type CostValues = Pick<Cost, "date" | "amount" | "category" | "note">;
-
-function CostForm({ initial, onSubmit }: { initial?: Cost; onSubmit: (v: CostValues) => void }) {
-  const [date, setDate] = useState(() => initial?.date ?? todayIso());
-  const [amount, setAmount] = useState(() => initial ? String(initial.amount).replace(".", ",") : "");
-  const [category, setCategory] = useState<string>(initial?.category ?? "Údržba");
-  const [note, setNote] = useState(initial?.note ?? "");
-  const [error, setError] = useState<string | null>(null);
-  const categories: string[] = [...COST_CATEGORIES];
-  if (!categories.includes(category)) categories.push(category);
-
-  const submit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const a = parseDecimal(amount);
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return setError("Zadajte platný dátum.");
-    if (!Number.isFinite(a) || a <= 0) return setError("Zadajte sumu väčšiu ako 0.");
-    setError(null);
-    onSubmit({ date, amount: Math.round(a * 100) / 100, category, note: note.trim() });
-    if (!initial) { setAmount(""); setNote(""); }
-  };
-
-  return (
-    <form onSubmit={submit} className="space-y-4">
-      <div className="grid grid-cols-2 gap-3">
-        <FormField label="Dátum" type="date" value={date} onChange={setDate} />
-        <FormField label="Suma" value={amount} onChange={setAmount} inputMode="decimal" placeholder="napr. 120,50" suffix="€" />
-      </div>
-      <label className="block">
-        <span className="mb-1.5 block text-sm font-semibold text-muted-foreground">Kategória</span>
-        <select value={category} onChange={(e) => setCategory(e.target.value)}
-          className="h-11 w-full rounded-lg border border-border bg-muted px-3 outline-none focus:ring-2 focus:ring-ring">
-          {categories.map((c) => <option key={c}>{c}</option>)}
-        </select>
-      </label>
-      <FormField label="Poznámka" value={note} onChange={setNote} placeholder="napr. výmena brzdových platničiek" />
-      {error ? <p className="text-sm text-destructive">{error}</p> : null}
-      <Button type="submit" className="w-full" size="lg">{initial ? "Uložiť zmeny" : "Uložiť náklad"}</Button>
-    </form>
-  );
-}

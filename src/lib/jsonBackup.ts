@@ -8,7 +8,7 @@ const date = z.string().regex(/^\d{4}-\d{2}-\d{2}$/).refine((v) => {
   return Number.isFinite(parsed.getTime()) && parsed.toISOString().slice(0, 10) === v;
 });
 const stateSchema = z.object({
-  vehicles: z.array(z.object({ id, brand: z.string().min(1), model: z.string().min(1), year: z.number().int(), initialOdometer: nonNegative, tankCapacity: z.number().finite().min(0).max(1000).optional(), fuelType: z.enum(VEHICLE_FUEL_TYPES).optional() })),
+  vehicles: z.array(z.object({ id, brand: z.string().min(1), model: z.string().min(1), year: z.number().int(), initialOdometer: nonNegative, tankCapacity: z.number().finite().min(0).max(1000).optional(), enginePowerKw: z.number().finite().positive().max(2000).optional(), fuelType: z.enum(VEHICLE_FUEL_TYPES).optional() })),
   fillUps: z.array(z.object({
     id, vehicleId: id, date, odometer: nonNegative.int(), liters: z.number().finite().positive(),
     totalCost: nonNegative, pricePerLiter: nonNegative, fuelType: z.enum(FUEL_TYPES), isFullTank: z.boolean(),
@@ -59,7 +59,7 @@ export function serializeJsonBackup(state: AppState): string {
 export function replaceFillUp(state: AppState, fillUpId: string, changes: Omit<FillUp, "id" | "vehicleId">): AppState {
   return { ...state, fillUps: state.fillUps.map((f) => f.id === fillUpId ? { ...changes, id: f.id, vehicleId: f.vehicleId } : f) };
 }
-export function replaceCost(state: AppState, costId: string, changes: Pick<Cost, "date" | "amount" | "category" | "note">): AppState {
+export function replaceCost(state: AppState, costId: string, changes: Pick<Cost, "date" | "amount" | "category" | "note"> & { odometer?: number | null }): AppState {
   return { ...state, costs: state.costs.map((c) => c.id === costId ? { ...c, ...changes, id: c.id, vehicleId: c.vehicleId } : c) };
 }
 

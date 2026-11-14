@@ -12,7 +12,7 @@ import { parseDecimal } from "@/lib/parseDecimal";
 import { cn } from "@/lib/utils";
 import { VEHICLE_FUEL_TYPES, type Vehicle, type VehicleFuelType } from "@/types/fuel";
 
-type Errors = Partial<Record<"brand" | "model" | "year" | "initialOdometer" | "tankCapacity", string>>;
+type Errors = Partial<Record<"brand" | "model" | "year" | "initialOdometer" | "tankCapacity" | "enginePowerKw", string>>;
 
 export function VehicleSettings() {
   const { vehicles, fillUps, costs, selectedVehicle, addVehicle, updateVehicle, deleteVehicle, selectVehicle } = useCarData();
@@ -22,6 +22,7 @@ export function VehicleSettings() {
   const deletingCosts = deleting ? costs.filter((c) => c.vehicleId === deleting.id).length : 0;
   const [editingId, setEditingId] = useState<string | null>(null);
   const [tank, setTank] = useState("");
+  const [power, setPower] = useState("");
   const [open, setOpen] = useState(false);
   const [brand, setBrand] = useState("");
   const [model, setModel] = useState("");
@@ -32,29 +33,33 @@ export function VehicleSettings() {
   const cy = new Date().getFullYear();
 
   const reset = () => {
-    setBrand(""); setModel(""); setYear(""); setOdo(""); setTank(""); setFuelType("Benzín");
+    setBrand(""); setModel(""); setYear(""); setOdo(""); setTank(""); setPower(""); setFuelType("Benzín");
     setEditingId(null); setErrors({});
   };
   const startEdit = (vehicle: Vehicle) => {
     setBrand(vehicle.brand); setModel(vehicle.model); setYear(String(vehicle.year)); setOdo(String(vehicle.initialOdometer));
     setTank(vehicle.tankCapacity !== undefined ? String(vehicle.tankCapacity) : "");
+    setPower(vehicle.enginePowerKw !== undefined ? String(vehicle.enginePowerKw) : "");
     setFuelType(vehicleFuelType(vehicle, fillUps)); setErrors({}); setEditingId(vehicle.id); setOpen(true);
   };
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     const y = parseDecimal(year), o = parseDecimal(odo);
     const t = tank.trim() === "" ? undefined : parseDecimal(tank);
+    const p = power.trim() === "" ? undefined : parseDecimal(power);
     const next: Errors = {};
     if (!brand.trim()) next.brand = "Zadajte značku vozidla.";
     if (!model.trim()) next.model = "Zadajte model vozidla.";
     if (!Number.isInteger(y) || y < 1900 || y > cy + 1) next.year = `Zadajte platný rok (1900 - ${cy + 1}).`;
     if (!Number.isFinite(o) || o < 0) next.initialOdometer = "Zadajte platný stav tachometra v km.";
     if (t !== undefined && (!Number.isFinite(t) || t < 0 || t > 1000)) next.tankCapacity = "Zadajte objem nádrže od 0 do 1000 l.";
+    if (p !== undefined && (!Number.isFinite(p) || p <= 0 || p > 2000)) next.enginePowerKw = "Zadajte výkon od 1 do 2000 kW.";
     setErrors(next);
     if (Object.keys(next).length > 0) return;
     const data = {
       brand: brand.trim(), model: model.trim(), year: y, initialOdometer: Math.round(o), fuelType,
       ...(t === undefined ? {} : { tankCapacity: t }),
+      ...(p === undefined ? {} : { enginePowerKw: p }),
     };
     if (editingId) updateVehicle(editingId, data); else addVehicle(data);
     reset();
@@ -80,9 +85,10 @@ export function VehicleSettings() {
                     <span className="text-lg font-semibold">{vehicle.brand} {vehicle.model}</span>
                     {active ? <span className="rounded-full bg-accent px-2.5 py-0.5 text-xs font-semibold text-accent-foreground">Aktívne</span> : null}
                   </div>
-                  <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                  <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-5">
                     <div><p className="text-xs text-muted-foreground">Rok výroby</p><p className="font-semibold">{vehicle.year}</p></div>
                     <div><p className="text-xs text-muted-foreground">Palivo</p><p className="font-semibold">{vehicleFuelType(vehicle, fillUps)}</p></div>
+                    <div><p className="text-xs text-muted-foreground">Výkon</p><p className="tabular font-semibold">{vehicle.enginePowerKw !== undefined ? `${formatNumber(vehicle.enginePowerKw)} kW` : "—"}</p></div>
                     <div><p className="text-xs text-muted-foreground">Počiatočný stav</p><p className="tabular font-semibold">{formatNumber(vehicle.initialOdometer)} km</p></div>
                     <div><p className="text-xs text-muted-foreground">Objem nádrže</p><p className="tabular font-semibold">{vehicle.tankCapacity !== undefined ? `${formatNumber(vehicle.tankCapacity)} l` : "—"}</p></div>
                   </div>
@@ -112,8 +118,11 @@ export function VehicleSettings() {
         <DialogContent className="max-h-[90vh] overflow-y-auto">
           <DialogHeader><DialogTitle>{editingId ? "Upraviť vozidlo" : "Nové vozidlo"}</DialogTitle></DialogHeader>
           <form onSubmit={submit} className="space-y-4">
-            <FormField label="Značka" value={brand} onChange={setBrand} placeholder="napr. Škoda" error={errors.brand} />
-            <FormField label="Model" value={model} onChange={setModel} placeholder="napr. Octavia" error={errors.model} />
+            <div className="grid gap-3 sm:grid-cols-3">
+              <FormField label="Značka" value={brand} onChange={setBrand} placeholder="napr. Škoda" error={errors.brand} />
+              <FormField label="Model" value={model} onChange={setModel} placeholder="napr. Octavia" error={errors.model} />
+              <FormField label="Výkon motora" value={power} onChange={setPower} inputMode="decimal" placeholder="napr. 81" suffix="kW" error={errors.enginePowerKw} />
+            </div>
             <FormField label="Rok výroby" value={year} onChange={setYear} inputMode="numeric" placeholder={String(cy)} error={errors.year} />
             <div className="space-y-2">
               <p className="text-sm font-semibold text-muted-foreground">Typ paliva</p>

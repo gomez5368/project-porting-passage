@@ -15,6 +15,8 @@ export type Vehicle = {
   initialOdometer: number;
   /** Tank capacity in liters (0–1000). */
   tankCapacity?: number | undefined;
+  /** Engine power in kW (optional). */
+  enginePowerKw?: number | undefined;
   /** Preferred fuel for new fill-ups; optional for vehicles saved before this setting existed. */
   fuelType?: VehicleFuelType | undefined;
 };

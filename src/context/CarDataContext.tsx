@@ -17,7 +17,7 @@ type CarDataContextValue = AppState & {
   selectedCosts: Cost[];
   addCost: (cost: NewCost & { vehicleId: string }) => void;
   deleteCost: (costId: string) => void;
-  updateCost: (costId: string, changes: Pick<Cost, 'date' | 'amount' | 'category' | 'note'>) => void;
+  updateCost: (costId: string, changes: Pick<Cost, 'date' | 'amount' | 'category' | 'note' | 'odometer'>) => void;
   addVehicle: (vehicle: NewVehicle) => Vehicle;
   selectVehicle: (vehicleId: string) => void;
   updateVehicle: (vehicleId: string, data: NewVehicle) => void;
@@ -87,7 +87,7 @@ export function CarDataProvider({ children }: { children: ReactNode }) {
     setState((prev) => ({ ...prev, costs: prev.costs.filter((c) => c.id !== costId) }));
   }, []);
 
-  const updateCost = useCallback((costId: string, changes: Pick<Cost, 'date' | 'amount' | 'category' | 'note'>) => {
+  const updateCost = useCallback((costId: string, changes: Pick<Cost, 'date' | 'amount' | 'category' | 'note' | 'odometer'>) => {
     setState((prev) => replaceCost(prev, costId, changes));
   }, []);
 
